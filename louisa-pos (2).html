@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LOUISA POS 系統</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--orange:#E87722;--orange-dark:#C45E0A;--orange-light:#FFF3E8;--bg:#FAF7F4;--white:#FFFFFF;--text:#1A1A1A;--muted:#888;--border:#E8E0D8;--red:#E53935;--green:#2E7D32;--sidebar:160px;--r:10px}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text)}
+#root{display:flex;min-height:100vh}
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;width:100%}
+.login-card{background:#fff;border-radius:16px;padding:40px;width:360px;box-shadow:0 4px 24px rgba(0,0,0,.08)}
+.login-header{background:var(--orange);border-radius:10px;padding:32px;text-align:center;margin-bottom:24px}
+.login-header h1{color:#fff;font-size:28px;font-weight:700;letter-spacing:2px}
+.login-header p{color:rgba(255,255,255,.85);font-size:14px;margin-top:6px}
+.login-row{display:flex;gap:8px}
+.login-row input{flex:1;border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:14px;font-family:inherit;outline:none}
+.login-row input:focus{border-color:var(--orange)}
+.btn{border:none;border-radius:8px;padding:10px 20px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:500;transition:background .15s}
+.btn-orange{background:var(--orange);color:#fff}.btn-orange:hover{background:var(--orange-dark)}
+.btn-gray{background:#f0ebe5;color:var(--text)}.btn-gray:hover{background:#e0d8d0}
+.btn-dark{background:#222;color:#fff}.btn-dark:hover{background:#444}
+.btn-outline{background:transparent;color:var(--orange);border:1.5px solid var(--orange)}.btn-outline:hover{background:var(--orange);color:#fff}
+.btn-red{background:var(--red);color:#fff}
+.btn-green{background:var(--green);color:#fff}
+.btn-sm{padding:5px 10px;font-size:12px}
+.app{display:flex;width:100%;min-height:100vh}
+.sidebar{width:var(--sidebar);background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-logo{padding:18px 16px 12px;font-size:20px;font-weight:700;color:var(--orange);letter-spacing:1px}
+.sidebar-nav{flex:1;padding:0 8px;display:flex;flex-direction:column;gap:2px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--muted);transition:all .15s;user-select:none}
+.nav-item:hover{background:var(--orange-light);color:var(--orange)}
+.nav-item.active{background:var(--orange);color:#fff}
+.sidebar-foot{padding:12px 16px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)}
+.sidebar-foot strong{display:block;color:var(--text);margin-bottom:2px}
+.main{flex:1;display:flex;flex-direction:column;min-height:100vh;overflow:hidden}
+.main-hd{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.main-hd h2{font-size:16px;font-weight:600}
+.main-body{flex:1;padding:20px 24px;overflow-y:auto}
+.card{background:#fff;border-radius:var(--r);border:1px solid var(--border);padding:20px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:20px}
+.stat-card{background:#fff;border-radius:var(--r);border:1px solid var(--border);padding:18px}
+.stat-label{font-size:12px;color:var(--muted);margin-bottom:6px}
+.stat-val{font-size:26px;font-weight:700}
+.stat-val.org{color:var(--orange)}.stat-val.grn{color:var(--green)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 12px;border-bottom:2px solid var(--border);color:var(--muted);font-weight:500;font-size:12px}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#faf8f6}
+.fg{margin-bottom:14px}
+.fl{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:500}
+.fi{width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;font-family:inherit;outline:none;background:#fff}
+.fi:focus{border-color:var(--orange)}
+.fs{width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;font-family:inherit;outline:none;background:#fff}
+.order-layout{display:grid;grid-template-columns:1fr 260px;gap:16px;height:calc(100vh - 92px)}
+.menu-area{overflow-y:auto}
+.mb-bar{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:14px}
+.mb-bar input{flex:1;border:none;outline:none;font-size:13px;font-family:inherit}
+.search-bar{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:14px}
+.search-bar input{flex:1;border:none;outline:none;font-size:13px;font-family:inherit}
+.cat-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.cat-tab{padding:5px 12px;border-radius:16px;font-size:12px;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--muted);transition:all .12s}
+.cat-tab.active{background:var(--orange);border-color:var(--orange);color:#fff}
+.sec-title{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.pcard{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:12px;cursor:pointer;transition:all .15s;text-align:center}
+.pcard:hover{border-color:var(--orange);box-shadow:0 2px 12px rgba(232,119,34,.12);transform:translateY(-1px)}
+.pcard img{width:70px;height:70px;object-fit:cover;border-radius:6px;margin-bottom:8px;background:#f0ebe5}
+.pcard .pn{font-size:12px;font-weight:500;line-height:1.3}
+.pcard .pp{font-size:13px;font-weight:700;color:var(--orange);margin-top:4px}
+.cart-panel{background:#fff;border:1px solid var(--border);border-radius:var(--r);display:flex;flex-direction:column;height:100%}
+.cart-hd{padding:14px 16px;border-bottom:1px solid var(--border);font-weight:600;font-size:14px}
+.cart-items{flex:1;overflow-y:auto;padding:10px 16px}
+.cart-item{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border)}
+.cart-item:last-child{border-bottom:none}
+.ci-name{font-size:13px;font-weight:500}
+.ci-opts{font-size:11px;color:var(--muted);margin-top:2px}
+.ci-right{text-align:right}
+.ci-price{font-size:13px;font-weight:600;color:var(--orange)}
+.qty-ctrl{display:flex;align-items:center;gap:6px;margin-top:4px;justify-content:flex-end}
+.qty-btn{width:22px;height:22px;border:1px solid var(--border);border-radius:4px;background:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+.cart-empty{text-align:center;color:var(--muted);font-size:13px;padding:30px 0}
+.cart-foot{padding:14px 16px;border-top:1px solid var(--border)}
+.cart-total{display:flex;justify-content:space-between;font-weight:700;font-size:16px;margin-bottom:10px}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:1000}
+.modal{background:#fff;border-radius:14px;padding:24px;width:420px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:16px}
+.og{margin-bottom:16px}
+.ol{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;display:block}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:6px 14px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;cursor:pointer;transition:all .12s;user-select:none}
+.chip.sel{background:var(--orange);border-color:var(--orange);color:#fff}
+.co-layout{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pay-btn{padding:20px;border:2px solid var(--border);border-radius:10px;background:#fff;cursor:pointer;font-size:14px;font-family:inherit;font-weight:500;transition:all .15s;text-align:center}
+.pay-btn:hover{border-color:var(--orange)}
+.pay-btn.sel{border-color:var(--orange);background:var(--orange-light);color:var(--orange)}
+.pay-btn.cash{border-color:var(--orange);background:var(--orange);color:#fff}
+.wait{font-size:48px;font-weight:800;color:var(--orange);text-align:center;margin:16px 0 4px}
+.success-card{background:#fff;border-radius:var(--r);padding:40px;text-align:center;border:1px solid var(--border)}
+.os-title{font-size:28px;font-weight:700;color:var(--orange);margin-bottom:8px}
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600}
+.b-unpaid{background:#fce4ec;color:#c62828}
+.b-paid{background:#e8f5e9;color:var(--green)}
+.b-done{background:#f0f0f0;color:#888}
+.b-up{background:#e8f5e9;color:var(--green)}
+.b-dn{background:#f0f0f0;color:#888}
+.tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;background:var(--orange-light);color:var(--orange);font-weight:600}
+.inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.inv-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:16px}
+.inv-nm{font-size:14px;font-weight:600;margin-bottom:6px}
+.inv-qty{font-size:22px;font-weight:800;margin-bottom:4px}
+.inv-qty.low{color:var(--red)}.inv-qty.ok{color:var(--green)}
+.promo-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.flex-bw{display:flex;justify-content:space-between;align-items:center}
+.toast{position:fixed;bottom:24px;right:24px;background:#222;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;z-index:9999;animation:fi .2s}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.loading{display:flex;align-items:center;justify-content:center;padding:60px;color:var(--muted);font-size:14px;flex-direction:column;gap:8px}
+.spin{width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err-box{background:#fce4ec;border:1px solid #f48fb1;border-radius:8px;padding:12px;font-size:13px;color:#c62828;margin-bottom:14px}
+.info-box{background:var(--orange-light);border:1px solid #ffb74d;border-radius:8px;padding:12px;font-size:13px;color:#e65100;margin-bottom:14px}
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+.os-sec{margin-bottom:20px}
+.os-sec-title{font-size:14px;font-weight:700;padding:8px 0;margin-bottom:8px;border-bottom:2px solid var(--border)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef} = React;
+
+const SUPA_URL = 'https://rvkfhetfdgsjmapztocd.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2a2ZoZXRmZGdzam1hcHp0b2NkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMTA1NjcsImV4cCI6MjA5NTc4NjU2N30.4oBlbOX62v4AZJdpcG21NqBLa3IBMiv9-2WMmMU_8kU';
+const db = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+function useToast(){
+  const [t,setT]=useState(null);
+  const show=(m)=>setT(m);
+  const el=t?<div className="toast">{t}<style>{`@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1}}`}</style></div>:null;
+  useEffect(()=>{if(t){const id=setTimeout(()=>setT(null),2500);return()=>clearTimeout(id)}},[t]);
+  return[show,el];
+}
+
+/* ── APP ROOT ── */
+function App(){
+  const[page,setPage]=useState('login');
+  const[staff,setStaff]=useState(null);
+  const[tab,setTab]=useState('order');
+  const[cart,setCart]=useState([]);
+  const[showToast,toastEl]=useToast();
+  const[dbStatus,setDbStatus]=useState('checking'); // checking | ok | error
+
+  useEffect(()=>{
+    db.from('products').select('id',{count:'exact',head:true})
+      .then(({error})=>{
+        if(error){ setDbStatus('error'); }
+        else{ setDbStatus('ok'); }
+      });
+  },[]);
+
+  if(page==='login') return <Login onLogin={s=>{setStaff(s);setPage('app')}} dbStatus={dbStatus}/>;
+
+  const navs=[
+    {k:'order',i:'🏠',l:'點餐首頁'},
+    {k:'orders',i:'📋',l:'訂單管理'},
+    {k:'products',i:'☕',l:'商品管理'},
+    {k:'inventory',i:'📦',l:'庫存管理'},
+    {k:'employees',i:'👥',l:'員工管理'},
+    {k:'promotions',i:'🎁',l:'促銷管理'},
+    {k:'analytics',i:'📊',l:'報表分析'},
+    {k:'settings',i:'⚙️',l:'系統設定'},
+  ];
+  const titles={order:'點餐首頁',orders:'當日訂單管理',products:'商品管理',inventory:'庫存管理',employees:'排班與打卡記錄',promotions:'促銷活動設定',analytics:'今日銷售統計',settings:'系統設定'};
+
+  return(
+    <div className="app">
+      <aside className="sidebar">
+        <div className="sidebar-logo">LOUISA</div>
+        <nav className="sidebar-nav">
+          {navs.map(n=>(
+            <div key={n.k} className={`nav-item${tab===n.k?' active':''}`} onClick={()=>setTab(n.k)}>
+              <span>{n.i}</span><span>{n.l}</span>
+            </div>
+          ))}
+        </nav>
+        <div className="sidebar-foot">
+          <strong>逢甲大學店</strong>
+          <div>店員：{staff}</div>
+          <button className="btn btn-outline btn-sm" style={{marginTop:8}} onClick={()=>{setPage('login');setStaff(null);setCart([])}}>登出系統</button>
+        </div>
+      </aside>
+      <main className="main">
+        <div className="main-hd"><h2>{titles[tab]}</h2></div>
+        <div className="main-body">
+          {tab==='order'&&<OrderPage cart={cart} setCart={setCart} setTab={setTab} showToast={showToast}/>}
+          {tab==='orders'&&<OrdersPage showToast={showToast}/>}
+          {tab==='products'&&<ProductsPage showToast={showToast}/>}
+          {tab==='inventory'&&<InventoryPage showToast={showToast}/>}
+          {tab==='employees'&&<EmployeesPage showToast={showToast}/>}
+          {tab==='promotions'&&<PromosPage showToast={showToast}/>}
+          {tab==='analytics'&&<AnalyticsPage/>}
+          {tab==='settings'&&<SettingsPage showToast={showToast}/>}
+        </div>
+      </main>
+      {toastEl}
+    </div>
+  );
+}
+
+/* ── LOGIN ── */
+function Login({onLogin,dbStatus}){
+  const[id,setId]=useState('職員編號001');
+  return(
+    <div className="login-wrap">
+      <div className="login-card">
+        <div className="login-header"><h1>LOUISA POS</h1><p>逢甲大學店</p></div>
+        {dbStatus==='checking'&&<div className="info-box">🔄 正在連線資料庫...</div>}
+        {dbStatus==='error'&&<div className="err-box">❌ 無法連線 Supabase。請確認：<br/>1. SQL 已執行成功<br/>2. RLS 已關閉<br/>3. 網路正常</div>}
+        {dbStatus==='ok'&&<div style={{background:'#e8f5e9',border:'1px solid #a5d6a7',borderRadius:8,padding:10,marginBottom:14,fontSize:12,color:'#2e7d32'}}>✅ 資料庫連線成功</div>}
+        <div className="login-row">
+          <input value={id} onChange={e=>setId(e.target.value)} onKeyDown={e=>e.key==='Enter'&&onLogin(id)}/>
+          <button className="btn btn-orange" onClick={()=>onLogin(id)}>進入</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── ORDER PAGE ── */
+function OrderPage({cart,setCart,showToast}){
+  const[products,setProducts]=useState([]);
+  const[loading,setLoading]=useState(true);
+  const[err,setErr]=useState('');
+  const[search,setSearch]=useState('');
+  const[cat,setCat]=useState('全部');
+  const[custom,setCustom]=useState(null);
+  const[opts,setOpts]=useState({size:'中杯',sugar:'正常糖',ice:'正常冰',add:[],noAdd:true});
+  const[phone,setPhone]=useState('');
+  const[step,setStep]=useState('menu');
+  const[pay,setPay]=useState('現金');
+  const[orderNo,setOrderNo]=useState('');
+
+  useEffect(()=>{
+    setLoading(true);
+    db.from('products').select('*').eq('available',true).order('id')
+      .then(({data,error})=>{
+        if(error){ setErr('讀取商品失敗：'+error.message); }
+        else{ setProducts(data||[]); }
+        setLoading(false);
+      });
+  },[]);
+
+  const cats=['全部',...new Set(products.map(p=>p.category))];
+  const filtered=products.filter(p=>(cat==='全部'||p.category===cat)&&(!search||p.name.includes(search)));
+
+  function addToCart(){
+    const extra=(opts.size==='大杯'?10:opts.size==='特大杯'?20:0)+(opts.add.includes('濃縮Shot')?15:0);
+    setCart(prev=>[...prev,{id:Date.now(),pid:custom.id,name:custom.name,opts,price:custom.price+extra,qty:1}]);
+    showToast('✅ '+custom.name+' 已加入');
+    setCustom(null);
+  }
+  function updQty(id,d){ setCart(prev=>prev.map(i=>i.id===id?{...i,qty:Math.max(0,i.qty+d)}:i).filter(i=>i.qty>0)); }
+  const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
+
+  async function confirmOrder(){
+    const no='#'+(1000+Math.floor(Math.random()*9000));
+    const pickup=new Date(Date.now()+15*60000).toISOString();
+    // 現金 = 未付款(需收銀確認)；刷卡/LINE Pay = 已付款(線上扣款)
+    const status = pay==='現金' ? 'unpaid' : 'paid';
+    const{error}=await db.from('orders').insert([{
+      order_no:no, member_phone:phone||null, items:cart, total,
+      payment_method:pay, status, pickup_time:pickup
+    }]);
+    if(error){ showToast('❌ 下單失敗：'+error.message); return; }
+    setOrderNo(no); setCart([]); setPay('現金'); setStep('success');
+  }
+
+  if(step==='success') return(
+    <div style={{maxWidth:400,margin:'40px auto'}}>
+      <div className="success-card">
+        <div style={{fontSize:48,marginBottom:12}}>✅</div>
+        <div className="os-title">訂單已成立</div>
+        <div style={{color:'var(--muted)',marginBottom:24}}>訂單編號：{orderNo}<br/>約 15 分鐘後可取餐</div>
+        <button className="btn btn-dark" onClick={()=>setStep('menu')}>回點餐首頁</button>
+      </div>
+    </div>
+  );
+
+  if(step==='checkout') return(
+    <div className="co-layout">
+      <div className="card">
+        <h3 style={{marginBottom:4}}>選擇支付方式</h3>
+        <div style={{fontSize:12,color:'var(--muted)',marginBottom:14}}>
+          目前選擇：<strong style={{color:'var(--orange)'}}>{pay}</strong>
+          {pay==='現金'?' （收款後轉為已付款）':' （線上扣款，直接進入製作）'}
+        </div>
+        <div className="pay-grid">
+          {['信用卡','LINE Pay','現金'].map(m=>(
+            <button key={m} className={`pay-btn${pay===m?' sel':''}`}
+              style={pay===m?{borderColor:'var(--orange)',background:'var(--orange)',color:'#fff'}:{}}
+              onClick={()=>setPay(m)}>{m}</button>
+          ))}
+        </div>
+      </div>
+      <div className="card" style={{textAlign:'center'}}>
+        <div style={{fontSize:13,color:'var(--muted)',marginBottom:8}}>預計取餐時間</div>
+        <div className="wait">15 MIN</div>
+        <div style={{fontSize:12,color:'var(--muted)'}}>（約 {new Date(Date.now()+15*60000).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})} 可取餐）</div>
+        <hr className="divider"/>
+        <div style={{fontSize:18,fontWeight:700,marginBottom:12}}>總金額：${total}</div>
+        <button className="btn btn-dark" style={{width:'100%'}} onClick={confirmOrder}>確認收款</button>
+        <button className="btn btn-gray" style={{width:'100%',marginTop:8}} onClick={()=>setStep('menu')}>← 返回</button>
+      </div>
+    </div>
+  );
+
+  return(
+    <div className="order-layout">
+      <div className="menu-area">
+        <div className="mb-bar"><span style={{fontSize:13,color:'var(--muted)'}}>👥</span><input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="會員電話（選填）"/></div>
+        <div className="search-bar"><span style={{color:'var(--muted)'}}>🔍</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="搜尋商品..."/></div>
+        <div className="cat-tabs">{cats.map(c=><div key={c} className={`cat-tab${cat===c?' active':''}`} onClick={()=>setCat(c)}>{c}</div>)}</div>
+        {err&&<div className="err-box">{err}</div>}
+        {loading?<div className="loading"><div className="spin"/><span>載入商品中...</span></div>:
+          filtered.length===0?<div className="loading"><span>😕 找不到商品</span></div>:
+          <><div className="sec-title">商品瀏覽</div>
+          <div className="pgrid">
+            {filtered.map(p=>(
+              <div key={p.id} className="pcard" onClick={()=>{setCustom(p);setOpts({size:'中杯',sugar:'正常糖',ice:'正常冰',add:[],noAdd:true})}}>
+                <img src={p.image_url||'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=200&q=80'} alt={p.name} onError={e=>e.target.src='https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=200&q=80'}/>
+                <div className="pn">{p.name}</div>
+                <div className="pp">${p.price}</div>
+              </div>
+            ))}
+          </div></>
+        }
+      </div>
+      <div className="cart-panel">
+        <div className="cart-hd">訂單明細</div>
+        <div className="cart-items">
+          {cart.length===0?<div className="cart-empty">尚未選購商品</div>:cart.map(item=>(
+            <div key={item.id} className="cart-item">
+              <div>
+                <div className="ci-name">{item.name}</div>
+                <div className="ci-opts">{item.opts.size}·{item.opts.sugar}·{item.opts.ice}{item.opts.add.length?' ·'+item.opts.add.join('/'):''}</div>
+              </div>
+              <div className="ci-right">
+                <div className="ci-price">${item.price*item.qty}</div>
+                <div className="qty-ctrl">
+                  <button className="qty-btn" onClick={()=>updQty(item.id,-1)}>−</button>
+                  <span>{item.qty}</span>
+                  <button className="qty-btn" onClick={()=>updQty(item.id,1)}>+</button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="cart-foot">
+          <div className="cart-total"><span>總金額</span><span style={{color:'var(--orange)'}}>${total}</span></div>
+          <button className="btn btn-orange" style={{width:'100%'}} disabled={cart.length===0} onClick={()=>setStep('checkout')}>前往結帳</button>
+        </div>
+      </div>
+      {custom&&(
+        <div className="overlay" onClick={()=>setCustom(null)}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
+            <h3>商品客製化</h3>
+            <div style={{display:'flex',gap:16,marginBottom:16,alignItems:'center'}}>
+              <img src={custom.image_url} style={{width:80,height:80,borderRadius:8,objectFit:'cover',background:'#f0ebe5'}} onError={e=>e.target.src='https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=200&q=80'}/>
+              <div><div style={{fontWeight:700,fontSize:16}}>{custom.name}</div><div style={{color:'var(--orange)',fontWeight:700,fontSize:18,marginTop:4}}>${custom.price}</div></div>
+            </div>
+            {[{l:'尺寸',k:'size',vs:['中杯','大杯','特大杯']},{l:'糖度',k:'sugar',vs:['無糖','半糖','正常糖']},{l:'冰塊',k:'ice',vs:['去冰','正常冰']}].map(g=>(
+              <div key={g.k} className="og">
+                <span className="ol">{g.l}</span>
+                <div className="chips">{g.vs.map(v=><div key={v} className={`chip${opts[g.k]===v?' sel':''}`} onClick={()=>setOpts(o=>({...o,[g.k]:v}))}>{v}</div>)}</div>
+              </div>
+            ))}
+            <div className="og">
+              <span className="ol">加料</span>
+              <div className="chips">{['燕麥奶','濃縮Shot','無'].map(v=>{
+                const s = v==='無' ? opts.noAdd : opts.add.includes(v);
+                return<div key={v} className={`chip${s?' sel':''}`} onClick={()=>{
+                  if(v==='無'){setOpts(o=>({...o,add:[],noAdd:true}));return;}
+                  setOpts(o=>{
+                    const newAdd=s?o.add.filter(x=>x!==v):[...o.add,v];
+                    return{...o,add:newAdd,noAdd:newAdd.length===0};
+                  });
+                }}>{v}</div>;
+              })}</div>
+            </div>
+            <button className="btn btn-orange" style={{width:'100%',marginTop:8}} onClick={addToCart}>加入訂單</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── ORDERS PAGE ── */
+function OrdersPage({showToast}){
+  const[orders,setOrders]=useState([]);
+  const[loading,setLoading]=useState(true);
+
+  async function load(){
+    setLoading(true);
+    const{data,error}=await db.from('orders').select('*').order('created_at',{ascending:false}).limit(60);
+    if(!error) setOrders(data||[]);
+    setLoading(false);
+  }
+  useEffect(()=>{load()},[]);
+
+  async function updStatus(id,status){
+    await db.from('orders').update({status}).eq('id',id);
+    showToast('✅ 狀態已更新'); load();
+  }
+
+  function Row({o}){
+    const items=Array.isArray(o.items)?o.items:[];
+    const summary=items.map(i=>`${i.name} x${i.qty}`).join('、');
+    const pickup=o.pickup_time?new Date(o.pickup_time).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}):'-';
+    return(
+      <tr>
+        <td><strong>{o.order_no}</strong></td>
+        <td>{pickup}</td>
+        <td style={{maxWidth:180,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{summary}</td>
+        <td><strong>${o.total}</strong></td>
+        <td>
+          {o.status==='unpaid'&&<button className="btn btn-orange btn-sm" onClick={()=>{showToast('🖨️ 列印中：'+o.order_no)}}>列印貼紙</button>}
+          {o.status==='paid'&&<span><span className="badge b-paid">製作中</span><button className="btn btn-gray btn-sm" style={{marginLeft:6}} onClick={()=>updStatus(o.id,'done')}>完成</button></span>}
+          {o.status==='done'&&<span className="badge b-done">已完成</span>}
+        </td>
+      </tr>
+    );
+  }
+
+  if(loading) return<div className="loading"><div className="spin"/><span>載入中...</span></div>;
+  const unpaid=orders.filter(o=>o.status==='unpaid');
+  const paid=orders.filter(o=>o.status==='paid');
+  const done=orders.filter(o=>o.status==='done');
+
+  return(
+    <div>
+      <button className="btn btn-orange btn-sm" style={{marginBottom:12}} onClick={load}>🔄 重新整理</button>
+      {[{title:'未付款：',list:unpaid},{title:'已付款：',list:paid},{title:'已完成：',list:done}].map(s=>(
+        <div key={s.title} className="os-sec">
+          <div className="os-sec-title">{s.title}</div>
+          <div className="card" style={{padding:0}}>
+            <table>
+              <thead><tr><th>序號</th><th>取餐時間</th><th>內容</th><th>金額</th><th>狀態</th></tr></thead>
+              <tbody>{s.list.length===0?<tr><td colSpan={5} style={{textAlign:'center',color:'var(--muted)',padding:16}}>無資料</td></tr>:s.list.map(o=><Row key={o.id} o={o}/>)}</tbody>
+            </table>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── PRODUCTS PAGE ── */
+function ProductsPage({showToast}){
+  const[products,setProducts]=useState([]);
+  const[loading,setLoading]=useState(true);
+  const[editing,setEditing]=useState(null);
+  const[adding,setAdding]=useState(false);
+  const[form,setForm]=useState({name:'',price:'',category:'義式咖啡',image_url:''});
+  const cats=['義式咖啡','精品咖啡','茶飲','輕食','甜點'];
+
+  async function load(){
+    setLoading(true);
+    const{data}=await db.from('products').select('*').order('id');
+    setProducts(data||[]); setLoading(false);
+  }
+  useEffect(()=>{load()},[]);
+
+  async function save(){
+    if(!form.name||!form.price) return;
+    if(editing){ await db.from('products').update({name:form.name,price:+form.price,category:form.category,image_url:form.image_url}).eq('id',editing.id); showToast('✅ 已更新'); }
+    else{ await db.from('products').insert([{name:form.name,price:+form.price,category:form.category,image_url:form.image_url}]); showToast('✅ 已新增'); }
+    setEditing(null); setAdding(false); load();
+  }
+
+  async function toggleAvail(p){
+    await db.from('products').update({available:!p.available}).eq('id',p.id);
+    showToast(p.available?'⬇️ 已下架':'✅ 已上架'); load();
+  }
+
+  const showForm=editing||adding;
+  if(loading) return<div className="loading"><div className="spin"/></div>;
+
+  return(
+    <div>
+      <button className="btn btn-orange" style={{marginBottom:14}} onClick={()=>{setAdding(true);setEditing(null);setForm({name:'',price:'',category:'義式咖啡',image_url:''})}}>＋ 新增商品</button>
+      {showForm&&(
+        <div className="card" style={{marginBottom:16}}>
+          <h3 style={{marginBottom:14}}>{editing?'編輯商品':'新增商品'}</h3>
+          <div className="two-col">
+            <div className="fg"><label className="fl">商品名稱</label><input className="fi" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/></div>
+            <div className="fg"><label className="fl">價格</label><input className="fi" type="number" value={form.price} onChange={e=>setForm(f=>({...f,price:e.target.value}))}/></div>
+            <div className="fg"><label className="fl">分類</label><select className="fs" value={form.category} onChange={e=>setForm(f=>({...f,category:e.target.value}))}>{cats.map(c=><option key={c}>{c}</option>)}</select></div>
+            <div className="fg"><label className="fl">圖片網址（選填）</label><input className="fi" value={form.image_url} onChange={e=>setForm(f=>({...f,image_url:e.target.value}))} placeholder="https://..."/></div>
+          </div>
+          <div style={{display:'flex',gap:8}}><button className="btn btn-orange" onClick={save}>儲存</button><button className="btn btn-gray" onClick={()=>{setEditing(null);setAdding(false)}}>取消</button></div>
+        </div>
+      )}
+      <div className="card" style={{padding:0}}>
+        <table>
+          <thead><tr><th>商品名稱</th><th>分類</th><th>價格</th><th>狀態</th><th>操作</th></tr></thead>
+          <tbody>{products.map(p=>(
+            <tr key={p.id}>
+              <td style={{fontWeight:500}}>{p.name}</td>
+              <td><span className="tag">{p.category}</span></td>
+              <td><strong>${p.price}</strong></td>
+              <td><span className={`badge ${p.available?'b-paid':'b-done'}`}>{p.available?'上架中':'已下架'}</span></td>
+              <td>
+                <div style={{display:'flex',gap:6}}>
+                  <button className="btn btn-gray btn-sm" onClick={()=>{setEditing(p);setAdding(false);setForm({name:p.name,price:p.price,category:p.category,image_url:p.image_url||''})}}>修改</button>
+                  <button className={`btn btn-sm ${p.available?'btn-red':'btn-green'}`} onClick={()=>toggleAvail(p)}>{p.available?'下架':'上架'}</button>
+                </div>
+              </td>
+            </tr>
+          ))}</tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ── INVENTORY PAGE ── */
+function InventoryPage({showToast}){
+  const[items,setItems]=useState([]);
+  const[editing,setEditing]=useState(null);
+  const[form,setForm]=useState({quantity:'',low_threshold:''});
+  const[loading,setLoading]=useState(true);
+
+  async function load(){
+    setLoading(true);
+    const{data}=await db.from('inventory').select('*').order('id');
+    setItems(data||[]); setLoading(false);
+  }
+  useEffect(()=>{load()},[]);
+
+  async function save(){
+    await db.from('inventory').update({quantity:+form.quantity,low_threshold:+form.low_threshold,updated_at:new Date().toISOString()}).eq('id',editing.id);
+    showToast('✅ 庫存已更新'); setEditing(null); load();
+  }
+
+  if(loading) return<div className="loading"><div className="spin"/></div>;
+
+  return(
+    <div>
+      <div className="inv-grid">
+        {items.map(item=>{
+          const low=item.quantity<=item.low_threshold;
+          return(
+            <div key={item.id} className="inv-card" style={{borderColor:low?'var(--red)':'var(--border)'}}>
+              <div className="inv-nm">{item.name}</div>
+              <div className={`inv-qty ${low?'low':'ok'}`}>{item.quantity} <span style={{fontSize:13,fontWeight:400}}>{item.unit}</span></div>
+              {low&&<div style={{fontSize:11,color:'var(--red)',marginBottom:6}}>⚠️ 庫存偏低</div>}
+              <div style={{fontSize:11,color:'var(--muted)',marginBottom:8}}>警示門檻：{item.low_threshold} {item.unit}</div>
+              <button className="btn btn-gray btn-sm" onClick={()=>{setEditing(item);setForm({quantity:item.quantity,low_threshold:item.low_threshold})}}>調整庫存</button>
+            </div>
+          );
+        })}
+      </div>
+      {editing&&(
+        <div className="overlay" onClick={()=>setEditing(null)}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
+            <h3>調整庫存：{editing.name}</h3>
+            <div className="fg" style={{marginTop:12}}><label className="fl">現有數量（{editing.unit}）</label><input className="fi" type="number" value={form.quantity} onChange={e=>setForm(f=>({...f,quantity:e.target.value}))}/></div>
+            <div className="fg"><label className="fl">低庫存門檻（{editing.unit}）</label><input className="fi" type="number" value={form.low_threshold} onChange={e=>setForm(f=>({...f,low_threshold:e.target.value}))}/></div>
+            <div style={{display:'flex',gap:8}}><button className="btn btn-orange" onClick={save}>儲存</button><button className="btn btn-gray" onClick={()=>setEditing(null)}>取消</button></div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── EMPLOYEES PAGE ── */
+function EmployeesPage({showToast}){
+  const[emps,setEmps]=useState([]);
+  const[adding,setAdding]=useState(false);
+  const[form,setForm]=useState({name:'',role:'店員',permissions:'點餐/收銀'});
+  const[loading,setLoading]=useState(true);
+
+  async function load(){
+    setLoading(true);
+    const{data}=await db.from('employees').select('*').order('id');
+    setEmps(data||[]); setLoading(false);
+  }
+  useEffect(()=>{load()},[]);
+
+  async function add(){
+    if(!form.name) return;
+    await db.from('employees').insert([form]);
+    showToast('✅ 員工已新增'); setAdding(false); setForm({name:'',role:'店員',permissions:'點餐/收銀'}); load();
+  }
+  async function clockIn(e){
+    await db.from('employees').update({clock_in:new Date().toISOString()}).eq('id',e.id);
+    showToast(`✅ ${e.name} 已打卡簽到`); load();
+  }
+  async function remove(id){
+    await db.from('employees').delete().eq('id',id);
+    showToast('🗑️ 已移除'); load();
+  }
+
+  if(loading) return<div className="loading"><div className="spin"/></div>;
+
+  return(
+    <div>
+      <button className="btn btn-orange" style={{marginBottom:14}} onClick={()=>setAdding(true)}>＋ 新增員工</button>
+      {adding&&(
+        <div className="card" style={{marginBottom:16}}>
+          <h3 style={{marginBottom:14}}>新增員工</h3>
+          <div className="two-col">
+            <div className="fg"><label className="fl">姓名</label><input className="fi" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/></div>
+            <div className="fg"><label className="fl">職級</label><select className="fs" value={form.role} onChange={e=>setForm(f=>({...f,role:e.target.value}))}><option>店員</option><option>資深店員</option><option>店長</option></select></div>
+            <div className="fg"><label className="fl">權限</label><select className="fs" value={form.permissions} onChange={e=>setForm(f=>({...f,permissions:e.target.value}))}><option>點餐/收銀</option><option>點餐/收銀/庫存</option><option>全部</option></select></div>
+          </div>
+          <div style={{display:'flex',gap:8}}><button className="btn btn-orange" onClick={add}>儲存</button><button className="btn btn-gray" onClick={()=>setAdding(false)}>取消</button></div>
+        </div>
+      )}
+      <div className="card" style={{padding:0}}>
+        <table>
+          <thead><tr><th>姓名</th><th>職級</th><th>今日出勤</th><th>權限</th><th>操作</th></tr></thead>
+          <tbody>{emps.map(e=>(
+            <tr key={e.id}>
+              <td style={{fontWeight:500}}>{e.name}</td>
+              <td><span className="tag">{e.role}</span></td>
+              <td>{e.clock_in?new Date(e.clock_in).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})+' 簽到':<span style={{color:'var(--muted)'}}>尚未簽到</span>}</td>
+              <td style={{color:'var(--muted)',fontSize:12}}>{e.permissions}</td>
+              <td><div style={{display:'flex',gap:6}}>
+                <button className="btn btn-orange btn-sm" onClick={()=>clockIn(e)}>打卡簽到</button>
+                <button className="btn btn-red btn-sm" onClick={()=>remove(e.id)}>移除</button>
+              </div></td>
+            </tr>
+          ))}</tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ── PROMOS PAGE ── */
+function PromosPage({showToast}){
+  const[promos,setPromos]=useState([]);
+  const[adding,setAdding]=useState(false);
+  const[form,setForm]=useState({title:'',description:'',discount_type:'percent',discount_value:''});
+  const[loading,setLoading]=useState(true);
+
+  async function load(){
+    setLoading(true);
+    const{data}=await db.from('promotions').select('*').order('id');
+    setPromos(data||[]); setLoading(false);
+  }
+  useEffect(()=>{load()},[]);
+
+  async function save(){
+    if(!form.title) return;
+    await db.from('promotions').insert([{...form,discount_value:+form.discount_value}]);
+    showToast('✅ 已新增'); setAdding(false); setForm({title:'',description:'',discount_type:'percent',discount_value:''}); load();
+  }
+  async function toggle(p){
+    await db.from('promotions').update({active:!p.active}).eq('id',p.id);
+    showToast(p.active?'⏸️ 已停用':'✅ 已啟用'); load();
+  }
+  async function del(id){
+    await db.from('promotions').delete().eq('id',id);
+    showToast('🗑️ 已刪除'); load();
+  }
+
+  if(loading) return<div className="loading"><div className="spin"/></div>;
+
+  return(
+    <div>
+      <button className="btn btn-orange" style={{marginBottom:14}} onClick={()=>setAdding(true)}>＋ 新增促銷</button>
+      {adding&&(
+        <div className="card" style={{marginBottom:16}}>
+          <h3 style={{marginBottom:14}}>新增促銷活動</h3>
+          <div className="fg"><label className="fl">活動名稱</label><input className="fi" value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))}/></div>
+          <div className="fg"><label className="fl">說明</label><input className="fi" value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))}/></div>
+          <div className="two-col">
+            <div className="fg"><label className="fl">折扣類型</label><select className="fs" value={form.discount_type} onChange={e=>setForm(f=>({...f,discount_type:e.target.value}))}><option value="percent">折數 (%)</option><option value="amount">折抵金額 ($)</option></select></div>
+            <div className="fg"><label className="fl">數值</label><input className="fi" type="number" value={form.discount_value} onChange={e=>setForm(f=>({...f,discount_value:e.target.value}))} placeholder={form.discount_type==='percent'?'例：85':'例：50'}/></div>
+          </div>
+          <div style={{display:'flex',gap:8}}><button className="btn btn-orange" onClick={save}>儲存</button><button className="btn btn-gray" onClick={()=>setAdding(false)}>取消</button></div>
+        </div>
+      )}
+      {promos.map(p=>(
+        <div key={p.id} className="promo-card">
+          <div className="flex-bw">
+            <div>
+              <div style={{fontWeight:700,marginBottom:4}}>{p.title}</div>
+              <div style={{fontSize:13,color:'var(--muted)'}}>{p.description}</div>
+              <div style={{fontSize:12,color:'var(--orange)',marginTop:4}}>{p.discount_type==='percent'?`${p.discount_value} 折`:`折抵 $${p.discount_value}`}</div>
+            </div>
+            <span className={`badge ${p.active?'b-paid':'b-done'}`}>{p.active?'啟用中':'已停用'}</span>
+          </div>
+          <div style={{display:'flex',gap:8,marginTop:10}}>
+            <button className="btn btn-outline btn-sm" onClick={()=>toggle(p)}>{p.active?'停用':'啟用'}</button>
+            <button className="btn btn-red btn-sm" onClick={()=>del(p.id)}>刪除</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── ANALYTICS PAGE ── */
+function AnalyticsPage(){
+  const[stats,setStats]=useState({revenue:0,avg:0,top:'無資料',count:0});
+  const[loading,setLoading]=useState(true);
+
+  useEffect(()=>{
+    const today=new Date(); today.setHours(0,0,0,0);
+    db.from('orders').select('*').gte('created_at',today.toISOString()).neq('status','unpaid')
+      .then(({data})=>{
+        if(data&&data.length>0){
+          const rev=data.reduce((s,o)=>s+(o.total||0),0);
+          const cnt={};
+          data.forEach(o=>(o.items||[]).forEach(i=>{cnt[i.name]=(cnt[i.name]||0)+(i.qty||1)}));
+          const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0]?.[0]||'無資料';
+          setStats({revenue:rev,avg:Math.round(rev/data.length),top,count:data.length});
+        }
+        setLoading(false);
+      });
+  },[]);
+
+  if(loading) return<div className="loading"><div className="spin"/></div>;
+
+  return(
+    <div>
+      <div className="stat-grid">
+        <div className="stat-card"><div className="stat-label">今日營收</div><div className="stat-val org">${stats.revenue.toLocaleString()}</div></div>
+        <div className="stat-card"><div className="stat-label">客單價</div><div className="stat-val">${stats.avg}</div></div>
+        <div className="stat-card"><div className="stat-label">熱門商品</div><div className="stat-val" style={{fontSize:18}}>{stats.top}</div></div>
+        <div className="stat-card"><div className="stat-label">訂單數量</div><div className="stat-val grn">{stats.count}</div></div>
+      </div>
+      <div className="card">
+        <div style={{color:'var(--muted)',fontSize:13,textAlign:'center',padding:'20px 0'}}>
+          📊 統計範圍：今日已付款 / 已完成訂單<br/>
+          <span style={{fontSize:12}}>點餐並結帳後，數據會即時更新</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── SETTINGS PAGE ── */
+function SettingsPage({showToast}){
+  const[ue,setUe]=useState(true);
+  const[pd,setPd]=useState(false);
+
+  return(
+    <div>
+      <div className="card">
+        <div style={{fontWeight:600,marginBottom:12}}>出單機狀態</div>
+        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16}}>
+          <span style={{fontSize:14,color:'var(--green)'}}>● HP Laserjet - 已連線</span>
+          <button className="btn btn-gray btn-sm" onClick={()=>showToast('🖨️ 已重新連線')}>重新連線</button>
+        </div>
+        <hr className="divider"/>
+        <div style={{fontWeight:600,marginBottom:12}}>外送平台串接</div>
+        {[{k:'ue',l:'UberEats',v:ue,s:setUe},{k:'pd',l:'Foodpanda',v:pd,s:setPd}].map(p=>(
+          <div key={p.k} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 14px',background:'var(--bg)',borderRadius:8,marginBottom:8}}>
+            <span style={{fontWeight:500}}>{p.l}</span>
+            <div style={{display:'flex',alignItems:'center',gap:10}}>
+              <span style={{fontSize:13,color:p.v?'var(--green)':'var(--muted)'}}>{p.v?'● 開啟':'○ 關閉'}</span>
+              <button className={`btn btn-sm ${p.v?'btn-red':'btn-green'}`} onClick={()=>{p.s(!p.v);showToast(`${p.l} 已${p.v?'關閉':'開啟'}`);}}>{p.v?'關閉':'開啟'}</button>
+            </div>
+          </div>
+        ))}
+        <hr className="divider"/>
+        <div style={{fontWeight:600,marginBottom:8}}>資料庫連線狀態</div>
+        <button className="btn btn-gray btn-sm" onClick={async()=>{
+          const{error}=await db.from('products').select('id',{count:'exact',head:true});
+          showToast(error?'❌ 連線失敗：'+error.message:'✅ Supabase 連線正常');
+        }}>測試連線</button>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.render(<App/>,document.getElementById('root'));
+</script>
+</body>
+</html>
