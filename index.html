@@ -274,8 +274,8 @@ function OrderPage({cart,setCart,showToast}){
   async function confirmOrder(){
     const no='#'+(1000+Math.floor(Math.random()*9000));
     const pickup=new Date(Date.now()+15*60000).toISOString();
-    // 現金 = 未付款(需收銀確認)；刷卡/LINE Pay = 已付款(線上扣款)
-    const status = pay==='現金' ? 'unpaid' : 'paid';
+    // 所有付款方式確認後都算已付款，直接進入製作流程
+    const status = 'paid';
     const{error}=await db.from('orders').insert([{
       order_no:no, member_phone:phone||null, items:cart, total,
       payment_method:pay, status, pickup_time:pickup
@@ -301,7 +301,7 @@ function OrderPage({cart,setCart,showToast}){
         <h3 style={{marginBottom:4}}>選擇支付方式</h3>
         <div style={{fontSize:12,color:'var(--muted)',marginBottom:14}}>
           目前選擇：<strong style={{color:'var(--orange)'}}>{pay}</strong>
-          {pay==='現金'?' （收款後轉為已付款）':' （線上扣款，直接進入製作）'}
+          {pay==='現金'?' （現場收款，確認後進入製作）':' （線上扣款，確認後進入製作）'}
         </div>
         <div className="pay-grid">
           {['信用卡','LINE Pay','現金'].map(m=>(
