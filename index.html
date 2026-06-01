@@ -177,9 +177,10 @@ function App(){
     {k:'employees',i:'👥',l:'員工管理'},
     {k:'promotions',i:'🎁',l:'促銷管理'},
     {k:'analytics',i:'📊',l:'報表分析'},
+    {k:'crm',i:'👤',l:'顧客管理'},
     {k:'settings',i:'⚙️',l:'系統設定'},
   ];
-  const titles={order:'點餐首頁',orders:'當日訂單管理',products:'商品管理',inventory:'庫存管理',employees:'排班與打卡記錄',promotions:'促銷活動設定',analytics:'今日銷售統計',settings:'系統設定'};
+  const titles={order:'點餐首頁',orders:'當日訂單管理',products:'商品管理',inventory:'庫存管理',employees:'排班與打卡記錄',promotions:'促銷活動設定',analytics:'今日銷售統計',crm:'顧客管理 CRM',settings:'系統設定'};
 
   return(
     <div className="app">
@@ -208,6 +209,7 @@ function App(){
           {tab==='employees'&&<EmployeesPage showToast={showToast}/>}
           {tab==='promotions'&&<PromosPage showToast={showToast}/>}
           {tab==='analytics'&&<AnalyticsPage/>}
+          {tab==='crm'&&<CRMPage showToast={showToast}/>}
           {tab==='settings'&&<SettingsPage showToast={showToast}/>}
         </div>
       </main>
@@ -441,32 +443,55 @@ function OrderPage({cart,setCart,showToast}){
 function OrdersPage({showToast}){
   const[orders,setOrders]=useState([]);
   const[loading,setLoading]=useState(true);
+  const[lastCount,setLastCount]=useState(null);
+  const[newAlert,setNewAlert]=useState(false);
+  const lastCountRef=React.useRef(null);
 
-  async function load(){
-    setLoading(true);
+  async function load(silent=false){
+    if(!silent) setLoading(true);
     const{data,error}=await db.from('orders').select('*').order('created_at',{ascending:false}).limit(60);
-    if(!error) setOrders(data||[]);
-    setLoading(false);
+    if(!error){
+      const fresh=data||[];
+      if(lastCountRef.current!==null && fresh.length>lastCountRef.current){
+        const diff=fresh.length-lastCountRef.current;
+        showToast('🔔 '+diff+' 筆新訂單！');
+        setNewAlert(true);
+        setTimeout(()=>setNewAlert(false),5000);
+      }
+      lastCountRef.current=fresh.length;
+      setOrders(fresh);
+    }
+    if(!silent) setLoading(false);
   }
-  useEffect(()=>{load()},[]);
+
+  useEffect(()=>{
+    load();
+    const timer=setInterval(()=>load(true),10000);
+    return()=>clearInterval(timer);
+  },[]);
 
   async function updStatus(id,status){
     await db.from('orders').update({status}).eq('id',id);
-    showToast('✅ 狀態已更新'); load();
+    showToast('✅ 狀態已更新'); load(true);
   }
 
   function Row({o}){
     const items=Array.isArray(o.items)?o.items:[];
-    const summary=items.map(i=>`${i.name} x${i.qty}`).join('、');
+    const summary=items.map(i=>`${i.name} x${i.qty||1}`).join('、');
     const pickup=o.pickup_time?new Date(o.pickup_time).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}):'-';
+    const isCustomer=o.order_no&&o.order_no.startsWith('C');
     return(
-      <tr>
-        <td><strong>{o.order_no}</strong></td>
-        <td>{pickup}</td>
-        <td style={{maxWidth:180,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{summary}</td>
-        <td><strong>${o.total}</strong></td>
+      <tr style={{background:isCustomer?'#fffde7':''}}>
         <td>
-          {o.status==='unpaid'&&<button className="btn btn-orange btn-sm" onClick={()=>{showToast('🖨️ 列印中：'+o.order_no)}}>列印貼紙</button>}
+          <strong>{o.order_no}</strong>
+          {isCustomer&&<span style={{marginLeft:4,fontSize:10,background:'var(--orange)',color:'#fff',padding:'1px 5px',borderRadius:6}}>顧客</span>}
+        </td>
+        <td>{pickup}</td>
+        <td style={{maxWidth:160,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{summary}</td>
+        <td><strong>${o.total}</strong></td>
+        <td style={{fontSize:11,color:'var(--muted)'}}>{o.payment_method}</td>
+        <td>
+          {o.status==='unpaid'&&<button className="btn btn-orange btn-sm" onClick={()=>showToast('🖨️ 列印中：'+o.order_no)}>列印貼紙</button>}
           {o.status==='paid'&&<span><span className="badge b-paid">製作中</span><button className="btn btn-gray btn-sm" style={{marginLeft:6}} onClick={()=>updStatus(o.id,'done')}>完成</button></span>}
           {o.status==='done'&&<span className="badge b-done">已完成</span>}
         </td>
@@ -478,17 +503,23 @@ function OrdersPage({showToast}){
   const unpaid=orders.filter(o=>o.status==='unpaid');
   const paid=orders.filter(o=>o.status==='paid');
   const done=orders.filter(o=>o.status==='done');
+  const customerCount=orders.filter(o=>o.order_no&&o.order_no.startsWith('C')).length;
 
   return(
     <div>
-      <button className="btn btn-orange btn-sm" style={{marginBottom:12}} onClick={load}>🔄 重新整理</button>
+      <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:12,flexWrap:'wrap'}}>
+        <button className="btn btn-orange btn-sm" onClick={()=>load()}>🔄 重新整理</button>
+        <span style={{fontSize:12,color:'var(--muted)'}}>每 10 秒自動偵測</span>
+        {newAlert&&<span style={{fontSize:12,background:'#fff3e0',color:'var(--orange)',padding:'3px 10px',borderRadius:10,fontWeight:600,border:'1px solid var(--orange)'}}>🔔 有新訂單！</span>}
+        {customerCount>0&&<span style={{fontSize:12,background:'#fffde7',color:'#f57f17',padding:'3px 10px',borderRadius:10,fontWeight:600,border:'1px solid #ffe082'}}>📱 顧客自助點單：{customerCount} 筆</span>}
+      </div>
       {[{title:'未付款：',list:unpaid},{title:'已付款：',list:paid},{title:'已完成：',list:done}].map(s=>(
         <div key={s.title} className="os-sec">
           <div className="os-sec-title">{s.title}</div>
           <div className="card" style={{padding:0}}>
             <table>
-              <thead><tr><th>序號</th><th>取餐時間</th><th>內容</th><th>金額</th><th>狀態</th></tr></thead>
-              <tbody>{s.list.length===0?<tr><td colSpan={5} style={{textAlign:'center',color:'var(--muted)',padding:16}}>無資料</td></tr>:s.list.map(o=><Row key={o.id} o={o}/>)}</tbody>
+              <thead><tr><th>序號</th><th>取餐時間</th><th>內容</th><th>金額</th><th>付款</th><th>狀態</th></tr></thead>
+              <tbody>{s.list.length===0?<tr><td colSpan={6} style={{textAlign:'center',color:'var(--muted)',padding:16}}>無資料</td></tr>:s.list.map(o=><Row key={o.id} o={o}/>)}</tbody>
             </table>
           </div>
         </div>
@@ -948,6 +979,208 @@ function AnalyticsPage(){
             </tbody>
           </table>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── CRM PAGE ── */
+function CRMPage({showToast}){
+  const[customers,setCustomers]=useState([]);
+  const[loading,setLoading]=useState(true);
+  const[search,setSearch]=useState('');
+  const[selected,setSelected]=useState(null);
+  const[custOrders,setCustOrders]=useState([]);
+  const[ordersLoading,setOrdersLoading]=useState(false);
+  const[editName,setEditName]=useState('');
+  const[editing,setEditing]=useState(false);
+
+  async function load(){
+    setLoading(true);
+    const{data}=await db.from('customers').select('*').order('total_spent',{ascending:false});
+    setCustomers(data||[]);
+    setLoading(false);
+  }
+  useEffect(()=>{load()},[]);
+
+  async function selectCustomer(c){
+    setSelected(c);
+    setEditName(c.name||'');
+    setEditing(false);
+    setOrdersLoading(true);
+    const{data}=await db.from('orders').select('*').eq('member_phone',c.phone).order('created_at',{ascending:false}).limit(20);
+    setCustOrders(data||[]);
+    setOrdersLoading(false);
+  }
+
+  async function saveName(){
+    await db.from('customers').update({name:editName}).eq('id',selected.id);
+    showToast('✅ 名稱已更新');
+    setEditing(false);
+    setSelected(s=>({...s,name:editName}));
+    load();
+  }
+
+  async function deleteCustomer(id){
+    await db.from('customers').delete().eq('id',id);
+    showToast('🗑️ 顧客已刪除');
+    setSelected(null);
+    load();
+  }
+
+  const filtered=customers.filter(c=>
+    !search||(c.phone||'').includes(search)||(c.name||'').includes(search)
+  );
+
+  // 顧客等級
+  function getLevel(spent){
+    if(spent>=5000) return{l:'黑卡',c:'#1a1a1a',bg:'#f5f5f5'};
+    if(spent>=2000) return{l:'金卡',c:'#b8860b',bg:'#fffde7'};
+    if(spent>=500) return{l:'銀卡',c:'#607d8b',bg:'#eceff1'};
+    return{l:'新顧客',c:'var(--muted)',bg:'#f5f5f5'};
+  }
+
+  if(loading) return<div className="loading"><div className="spin"/></div>;
+
+  return(
+    <div style={{display:'grid',gridTemplateColumns:'1fr 1.2fr',gap:16,height:'calc(100vh - 92px)'}}>
+      {/* LEFT: 顧客列表 */}
+      <div style={{display:'flex',flexDirection:'column',gap:12,overflow:'hidden'}}>
+        {/* 統計總覽 */}
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10}}>
+          <div className="stat-card"><div className="stat-label">總顧客數</div><div className="stat-val org">{customers.length}</div></div>
+          <div className="stat-card"><div className="stat-label">今日新顧客</div><div className="stat-val grn">{customers.filter(c=>new Date(c.created_at).toDateString()===new Date().toDateString()).length}</div></div>
+          <div className="stat-card"><div className="stat-label">回頭客</div><div className="stat-val">{customers.filter(c=>c.total_orders>1).length}</div></div>
+        </div>
+
+        {/* 搜尋 */}
+        <div className="search-bar">
+          <span style={{color:'var(--muted)'}}>🔍</span>
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="搜尋電話或姓名..."/>
+        </div>
+
+        {/* 列表 */}
+        <div style={{flex:1,overflowY:'auto'}}>
+          <div className="card" style={{padding:0}}>
+            <table>
+              <thead><tr><th>顧客</th><th>等級</th><th>訂單</th><th>消費</th></tr></thead>
+              <tbody>
+                {filtered.length===0
+                  ? <tr><td colSpan={4} style={{textAlign:'center',color:'var(--muted)',padding:20}}>尚無顧客資料<br/><span style={{fontSize:12}}>顧客從點餐系統填入電話後自動建立</span></td></tr>
+                  : filtered.map(c=>{
+                    const lv=getLevel(c.total_spent);
+                    return(
+                      <tr key={c.id} style={{cursor:'pointer',background:selected?.id===c.id?'var(--orange-light)':''}} onClick={()=>selectCustomer(c)}>
+                        <td>
+                          <div style={{fontWeight:500}}>{c.name||'顧客'}</div>
+                          <div style={{fontSize:11,color:'var(--muted)'}}>{c.phone}</div>
+                        </td>
+                        <td><span style={{fontSize:11,padding:'2px 8px',borderRadius:10,background:lv.bg,color:lv.c,fontWeight:600}}>{lv.l}</span></td>
+                        <td style={{fontWeight:600}}>{c.total_orders}</td>
+                        <td style={{fontWeight:600,color:'var(--orange)'}}>${(c.total_spent||0).toLocaleString()}</td>
+                      </tr>
+                    );
+                  })
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT: 顧客詳情 */}
+      <div style={{overflowY:'auto'}}>
+        {!selected
+          ? <div className="card" style={{textAlign:'center',padding:'60px 20px',color:'var(--muted)'}}>
+              <div style={{fontSize:40,marginBottom:12}}>👤</div>
+              <div>點選左側顧客查看詳情</div>
+            </div>
+          : <div>
+              {/* 顧客資料卡 */}
+              <div className="card" style={{marginBottom:12}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:14}}>
+                  <div style={{display:'flex',alignItems:'center',gap:12}}>
+                    <div style={{width:48,height:48,background:'var(--orange)',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:20,fontWeight:700}}>
+                      {(selected.name||'顧')[0]}
+                    </div>
+                    <div>
+                      {editing
+                        ? <div style={{display:'flex',gap:6,alignItems:'center'}}>
+                            <input className="fi" value={editName} onChange={e=>setEditName(e.target.value)} style={{width:120,padding:'6px 10px',fontSize:14}}/>
+                            <button className="btn btn-orange btn-sm" onClick={saveName}>存</button>
+                            <button className="btn btn-gray btn-sm" onClick={()=>setEditing(false)}>取消</button>
+                          </div>
+                        : <div style={{display:'flex',alignItems:'center',gap:6}}>
+                            <span style={{fontWeight:700,fontSize:16}}>{selected.name||'顧客'}</span>
+                            <button className="btn btn-gray btn-sm" onClick={()=>setEditing(true)}>✏️</button>
+                          </div>
+                      }
+                      <div style={{fontSize:12,color:'var(--muted)',marginTop:2}}>📱 {selected.phone}</div>
+                    </div>
+                  </div>
+                  <button className="btn btn-red btn-sm" onClick={()=>deleteCustomer(selected.id)}>刪除</button>
+                </div>
+
+                {/* 等級 + 統計 */}
+                {(()=>{const lv=getLevel(selected.total_spent); return(
+                  <div style={{background:lv.bg,borderRadius:8,padding:'10px 14px',marginBottom:12,display:'flex',alignItems:'center',gap:8}}>
+                    <span style={{fontSize:18}}>🏅</span>
+                    <span style={{fontWeight:700,color:lv.c}}>{lv.l}</span>
+                    <span style={{fontSize:12,color:'var(--muted)',marginLeft:4}}>
+                      {lv.l==='新顧客'?'消費滿 $500 升級銀卡':lv.l==='銀卡'?'消費滿 $2,000 升級金卡':lv.l==='金卡'?'消費滿 $5,000 升級黑卡':'最高等級會員 🎉'}
+                    </span>
+                  </div>
+                )})()}
+
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10}}>
+                  <div style={{textAlign:'center',padding:'10px 0',background:'var(--bg)',borderRadius:8}}>
+                    <div style={{fontSize:11,color:'var(--muted)',marginBottom:4}}>總訂單</div>
+                    <div style={{fontSize:22,fontWeight:700,color:'var(--orange)'}}>{selected.total_orders}</div>
+                  </div>
+                  <div style={{textAlign:'center',padding:'10px 0',background:'var(--bg)',borderRadius:8}}>
+                    <div style={{fontSize:11,color:'var(--muted)',marginBottom:4}}>總消費</div>
+                    <div style={{fontSize:18,fontWeight:700}}>${(selected.total_spent||0).toLocaleString()}</div>
+                  </div>
+                  <div style={{textAlign:'center',padding:'10px 0',background:'var(--bg)',borderRadius:8}}>
+                    <div style={{fontSize:11,color:'var(--muted)',marginBottom:4}}>客單價</div>
+                    <div style={{fontSize:18,fontWeight:700}}>${selected.total_orders?Math.round(selected.total_spent/selected.total_orders):0}</div>
+                  </div>
+                </div>
+
+                {selected.last_order_at&&(
+                  <div style={{fontSize:12,color:'var(--muted)',marginTop:10}}>
+                    最後消費：{new Date(selected.last_order_at).toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}
+                  </div>
+                )}
+              </div>
+
+              {/* 消費紀錄 */}
+              <div className="card" style={{padding:0}}>
+                <div style={{padding:'12px 16px',fontWeight:700,borderBottom:'1px solid var(--border)'}}>消費紀錄</div>
+                {ordersLoading
+                  ? <div className="loading"><div className="spin"/></div>
+                  : custOrders.length===0
+                    ? <div style={{textAlign:'center',color:'var(--muted)',padding:20,fontSize:13}}>尚無消費紀錄</div>
+                    : <table>
+                        <thead><tr><th>訂單編號</th><th>時間</th><th>品項</th><th>金額</th></tr></thead>
+                        <tbody>
+                          {custOrders.map(o=>{
+                            const items=(o.items||[]).map(i=>`${i.name}×${i.qty||1}`).join('、');
+                            return(
+                              <tr key={o.id}>
+                                <td><strong>{o.order_no}</strong></td>
+                                <td style={{fontSize:11,color:'var(--muted)'}}>{new Date(o.created_at).toLocaleDateString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</td>
+                                <td style={{fontSize:12,maxWidth:140,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{items}</td>
+                                <td style={{color:'var(--orange)',fontWeight:600}}>${o.total}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                }
+              </div>
+            </div>
+        }
       </div>
     </div>
   );
