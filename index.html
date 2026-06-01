@@ -263,8 +263,9 @@ function OrderPage({cart,setCart,showToast}){
   const filtered=products.filter(p=>(cat==='全部'||p.category===cat)&&(!search||p.name.includes(search)));
 
   function addToCart(){
-    const extra=(opts.size==='大杯'?10:opts.size==='特大杯'?20:0)+(opts.add.includes('濃縮Shot')?15:0);
-    setCart(prev=>[...prev,{id:Date.now(),pid:custom.id,name:custom.name,opts,price:custom.price+extra,qty:1}]);
+    const food=FOOD_CATS.includes(custom.category);
+    const extra=food?0:(opts.size==='大杯'?10:opts.size==='特大杯'?20:0)+(opts.add.includes('濃縮Shot')?15:0);
+    setCart(prev=>[...prev,{id:Date.now(),pid:custom.id,name:custom.name,opts,price:custom.price+extra,qty:1,isFood:food}]);
     showToast('✅ '+custom.name+' 已加入');
     setCustom(null);
   }
@@ -323,10 +324,38 @@ function OrderPage({cart,setCart,showToast}){
     </div>
   );
 
+  const FOOD_CATS=['輕食','甜點'];
+  const isFood = custom && FOOD_CATS.includes(custom.category);
+  const FREQUENT=[{name:'拿鐵咖啡',price:85,category:'義式咖啡',image_url:'https://images.unsplash.com/photo-1561882468-9110e03e0f78?w=200&q=80'},{name:'小農鮮奶茶',price:75,category:'茶飲',image_url:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&q=80'},{name:'莊園美式',price:70,category:'義式咖啡',image_url:'https://images.unsplash.com/photo-1497515114629-f71d768fd07c?w=200&q=80'}];
+
+  function openProduct(p){
+    const food=FOOD_CATS.includes(p.category);
+    setCustom(p);
+    setOpts(food?{add:[],noAdd:true}:{size:'中杯',sugar:'正常糖',ice:'正常冰',add:[],noAdd:true});
+  }
+
   return(
     <div className="order-layout">
       <div className="menu-area">
-        <div className="mb-bar"><span style={{fontSize:13,color:'var(--muted)'}}>👥</span><input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="會員電話（選填）"/></div>
+        <div className="mb-bar">
+          <span style={{fontSize:13,color:'var(--muted)'}}>👥</span>
+          <input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="會員電話（選填）" style={{flex:1}}/>
+          {phone&&<button className="btn btn-orange btn-sm" onClick={()=>{showToast('✅ 會員電話：'+phone+' 已確認')}}>確認</button>}
+        </div>
+        {phone&&(
+          <div style={{marginBottom:14}}>
+            <div className="sec-title">最常點商品</div>
+            <div className="pgrid">
+              {FREQUENT.map((p,i)=>(
+                <div key={i} className="pcard" onClick={()=>openProduct(p)}>
+                  <img src={p.image_url} alt={p.name} onError={e=>e.target.src='https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=200&q=80'}/>
+                  <div className="pn">{p.name}</div>
+                  <div className="pp">${p.price}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="search-bar"><span style={{color:'var(--muted)'}}>🔍</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="搜尋商品..."/></div>
         <div className="cat-tabs">{cats.map(c=><div key={c} className={`cat-tab${cat===c?' active':''}`} onClick={()=>setCat(c)}>{c}</div>)}</div>
         {err&&<div className="err-box">{err}</div>}
@@ -335,7 +364,7 @@ function OrderPage({cart,setCart,showToast}){
           <><div className="sec-title">商品瀏覽</div>
           <div className="pgrid">
             {filtered.map(p=>(
-              <div key={p.id} className="pcard" onClick={()=>{setCustom(p);setOpts({size:'中杯',sugar:'正常糖',ice:'正常冰',add:[],noAdd:true})}}>
+              <div key={p.id} className="pcard" onClick={()=>openProduct(p)}>
                 <img src={p.image_url||'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=200&q=80'} alt={p.name} onError={e=>e.target.src='https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=200&q=80'}/>
                 <div className="pn">{p.name}</div>
                 <div className="pp">${p.price}</div>
@@ -351,7 +380,11 @@ function OrderPage({cart,setCart,showToast}){
             <div key={item.id} className="cart-item">
               <div>
                 <div className="ci-name">{item.name}</div>
-                <div className="ci-opts">{item.opts.size}·{item.opts.sugar}·{item.opts.ice}{item.opts.add.length?' ·'+item.opts.add.join('/'):''}</div>
+                <div className="ci-opts">
+                  {item.isFood
+                    ? (item.opts.add.length>0 ? '加：'+item.opts.add.join('/') : '不加料')
+                    : `${item.opts.size}·${item.opts.sugar}·${item.opts.ice}${item.opts.add.length?' ·'+item.opts.add.join('/'):''}` }
+                </div>
               </div>
               <div className="ci-right">
                 <div className="ci-price">${item.price*item.qty}</div>
@@ -377,15 +410,15 @@ function OrderPage({cart,setCart,showToast}){
               <img src={custom.image_url} style={{width:80,height:80,borderRadius:8,objectFit:'cover',background:'#f0ebe5'}} onError={e=>e.target.src='https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=200&q=80'}/>
               <div><div style={{fontWeight:700,fontSize:16}}>{custom.name}</div><div style={{color:'var(--orange)',fontWeight:700,fontSize:18,marginTop:4}}>${custom.price}</div></div>
             </div>
-            {[{l:'尺寸',k:'size',vs:['中杯','大杯','特大杯']},{l:'糖度',k:'sugar',vs:['無糖','半糖','正常糖']},{l:'冰塊',k:'ice',vs:['去冰','正常冰']}].map(g=>(
+            {!isFood && [{l:'尺寸',k:'size',vs:['中杯','大杯','特大杯']},{l:'糖度',k:'sugar',vs:['無糖','半糖','正常糖']},{l:'冰塊',k:'ice',vs:['去冰','正常冰']}].map(g=>(
               <div key={g.k} className="og">
                 <span className="ol">{g.l}</span>
                 <div className="chips">{g.vs.map(v=><div key={v} className={`chip${opts[g.k]===v?' sel':''}`} onClick={()=>setOpts(o=>({...o,[g.k]:v}))}>{v}</div>)}</div>
               </div>
             ))}
             <div className="og">
-              <span className="ol">加料</span>
-              <div className="chips">{['燕麥奶','濃縮Shot','無'].map(v=>{
+              <span className="ol">{isFood?'加料':'加料'}</span>
+              <div className="chips">{(isFood?['加蛋','加生菜','加起司','無']:['燕麥奶','濃縮Shot','無']).map(v=>{
                 const s = v==='無' ? opts.noAdd : opts.add.includes(v);
                 return<div key={v} className={`chip${s?' sel':''}`} onClick={()=>{
                   if(v==='無'){setOpts(o=>({...o,add:[],noAdd:true}));return;}
@@ -716,38 +749,204 @@ function PromosPage({showToast}){
 
 /* ── ANALYTICS PAGE ── */
 function AnalyticsPage(){
-  const[stats,setStats]=useState({revenue:0,avg:0,top:'無資料',count:0});
+  const[orders,setOrders]=useState([]);
   const[loading,setLoading]=useState(true);
+  const[range,setRange]=useState('today'); // today | week | month
+  const[exporting,setExporting]=useState(false);
 
-  useEffect(()=>{
-    const today=new Date(); today.setHours(0,0,0,0);
-    db.from('orders').select('*').gte('created_at',today.toISOString()).neq('status','unpaid')
-      .then(({data})=>{
-        if(data&&data.length>0){
-          const rev=data.reduce((s,o)=>s+(o.total||0),0);
-          const cnt={};
-          data.forEach(o=>(o.items||[]).forEach(i=>{cnt[i.name]=(cnt[i.name]||0)+(i.qty||1)}));
-          const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0]?.[0]||'無資料';
-          setStats({revenue:rev,avg:Math.round(rev/data.length),top,count:data.length});
-        }
-        setLoading(false);
+  useEffect(()=>{ loadOrders(); },[range]);
+
+  async function loadOrders(){
+    setLoading(true);
+    const now=new Date();
+    let from=new Date();
+    if(range==='today'){ from.setHours(0,0,0,0); }
+    else if(range==='week'){ from.setDate(now.getDate()-6); from.setHours(0,0,0,0); }
+    else{ from.setDate(1); from.setHours(0,0,0,0); }
+    const{data}=await db.from('orders').select('*').gte('created_at',from.toISOString()).neq('status','unpaid').order('created_at');
+    setOrders(data||[]);
+    setLoading(false);
+  }
+
+  // 計算統計
+  const revenue=orders.reduce((s,o)=>s+(o.total||0),0);
+  const avg=orders.length?Math.round(revenue/orders.length):0;
+
+  // 商品銷售排行
+  const prodCnt={};
+  const prodRev={};
+  orders.forEach(o=>(o.items||[]).forEach(i=>{
+    prodCnt[i.name]=(prodCnt[i.name]||0)+(i.qty||1);
+    prodRev[i.name]=(prodRev[i.name]||0)+(i.price||0)*(i.qty||1);
+  }));
+  const prodRank=Object.entries(prodCnt).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const maxQty=prodRank[0]?.[1]||1;
+
+  // 付款方式分布
+  const payCnt={現金:0,信用卡:0,'LINE Pay':0};
+  orders.forEach(o=>{ if(payCnt[o.payment_method]!==undefined) payCnt[o.payment_method]++; });
+  const payTotal=orders.length||1;
+
+  // 每小時分布（只在 today 顯示）
+  const hourly=Array(24).fill(0);
+  if(range==='today') orders.forEach(o=>{ const h=new Date(o.created_at).getHours(); hourly[h]++; });
+  const activeHours=hourly.map((c,h)=>({h,c})).filter(x=>x.c>0||( range==='today'));
+  const peakH=hourly.indexOf(Math.max(...hourly));
+  const maxH=Math.max(...hourly)||1;
+
+  // 每日營收（week/month）
+  const dailyMap={};
+  orders.forEach(o=>{
+    const d=new Date(o.created_at).toLocaleDateString('zh-TW',{month:'2-digit',day:'2-digit'});
+    dailyMap[d]=(dailyMap[d]||0)+(o.total||0);
+  });
+  const dailyArr=Object.entries(dailyMap).sort((a,b)=>a[0]>b[0]?1:-1);
+  const maxDay=Math.max(...dailyArr.map(x=>x[1]))||1;
+
+  // 匯出 CSV
+  function exportCSV(){
+    setExporting(true);
+    const rows=[['訂單編號','時間','品項','數量','金額','付款方式']];
+    orders.forEach(o=>{
+      (o.items||[]).forEach(i=>{
+        rows.push([o.order_no, new Date(o.created_at).toLocaleString('zh-TW'), i.name, i.qty||1, i.price*(i.qty||1), o.payment_method]);
       });
-  },[]);
+    });
+    const csv=rows.map(r=>r.join(',')).join('\n');
+    const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url;
+    a.download=`louisa_report_${range}_${new Date().toLocaleDateString('zh-TW').replace(/\//g,'')}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+    setExporting(false);
+  }
+
+  const rangeLabel={today:'今日',week:'近7天',month:'本月'};
 
   if(loading) return<div className="loading"><div className="spin"/></div>;
 
   return(
     <div>
-      <div className="stat-grid">
-        <div className="stat-card"><div className="stat-label">今日營收</div><div className="stat-val org">${stats.revenue.toLocaleString()}</div></div>
-        <div className="stat-card"><div className="stat-label">客單價</div><div className="stat-val">${stats.avg}</div></div>
-        <div className="stat-card"><div className="stat-label">熱門商品</div><div className="stat-val" style={{fontSize:18}}>{stats.top}</div></div>
-        <div className="stat-card"><div className="stat-label">訂單數量</div><div className="stat-val grn">{stats.count}</div></div>
+      {/* 時間範圍選擇 + 匯出 */}
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+        <div style={{display:'flex',gap:6}}>
+          {['today','week','month'].map(r=>(
+            <button key={r} className={`cat-tab${range===r?' active':''}`} onClick={()=>setRange(r)}>{rangeLabel[r]}</button>
+          ))}
+        </div>
+        <button className="btn btn-outline btn-sm" onClick={exportCSV} disabled={exporting||orders.length===0}>
+          {exporting?'匯出中...':'⬇ 匯出 CSV 報表'}
+        </button>
       </div>
-      <div className="card">
-        <div style={{color:'var(--muted)',fontSize:13,textAlign:'center',padding:'20px 0'}}>
-          📊 統計範圍：今日已付款 / 已完成訂單<br/>
-          <span style={{fontSize:12}}>點餐並結帳後，數據會即時更新</span>
+
+      {/* 總覽卡片 */}
+      <div className="stat-grid" style={{marginBottom:16}}>
+        <div className="stat-card"><div className="stat-label">{rangeLabel[range]}營收</div><div className="stat-val org">${revenue.toLocaleString()}</div></div>
+        <div className="stat-card"><div className="stat-label">訂單數</div><div className="stat-val grn">{orders.length}</div></div>
+        <div className="stat-card"><div className="stat-label">客單價</div><div className="stat-val">${avg}</div></div>
+        <div className="stat-card"><div className="stat-label">熱門商品</div><div className="stat-val" style={{fontSize:16}}>{prodRank[0]?.[0]||'—'}</div></div>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:16}}>
+        {/* 商品銷售排行 */}
+        <div className="card">
+          <div style={{fontWeight:700,marginBottom:14}}>📦 商品銷售排行</div>
+          {prodRank.length===0?<div style={{color:'var(--muted)',fontSize:13,textAlign:'center',padding:'20px 0'}}>尚無資料</div>:
+          prodRank.map(([name,qty],i)=>(
+            <div key={name} style={{marginBottom:10}}>
+              <div style={{display:'flex',justifyContent:'space-between',fontSize:12,marginBottom:3}}>
+                <span><span style={{color:'var(--orange)',fontWeight:700,marginRight:6}}>#{i+1}</span>{name}</span>
+                <span style={{fontWeight:600}}>{qty} 杯／份 · <span style={{color:'var(--orange)'}}>${(prodRev[name]||0).toLocaleString()}</span></span>
+              </div>
+              <div style={{height:8,background:'#f0ebe5',borderRadius:4,overflow:'hidden'}}>
+                <div style={{height:'100%',width:`${(qty/maxQty)*100}%`,background:'var(--orange)',borderRadius:4,transition:'width .3s'}}/>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* 付款方式 + 高峰時段 */}
+        <div style={{display:'flex',flexDirection:'column',gap:16}}>
+          <div className="card">
+            <div style={{fontWeight:700,marginBottom:14}}>💳 付款方式分布</div>
+            {Object.entries(payCnt).map(([m,c])=>(
+              <div key={m} style={{marginBottom:8}}>
+                <div style={{display:'flex',justifyContent:'space-between',fontSize:12,marginBottom:3}}>
+                  <span>{m}</span>
+                  <span style={{fontWeight:600}}>{c} 筆（{Math.round(c/payTotal*100)}%）</span>
+                </div>
+                <div style={{height:8,background:'#f0ebe5',borderRadius:4,overflow:'hidden'}}>
+                  <div style={{height:'100%',width:`${(c/payTotal)*100}%`,background:m==='現金'?'#43a047':m==='信用卡'?'#1e88e5':'#e91e63',borderRadius:4}}/>
+                </div>
+              </div>
+            ))}
+          </div>
+          {range==='today'&&(
+            <div className="card">
+              <div style={{fontWeight:700,marginBottom:14}}>⏱ 今日高峰時段</div>
+              {orders.length===0?<div style={{color:'var(--muted)',fontSize:13}}>尚無訂單</div>:<>
+              <div style={{fontSize:13,color:'var(--muted)',marginBottom:10}}>最高峰：{peakH}:00–{peakH+1}:00（{hourly[peakH]} 筆）</div>
+              <div style={{display:'flex',alignItems:'flex-end',gap:3,height:60}}>
+                {Array.from({length:24},(_,h)=>(
+                  <div key={h} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center'}}>
+                    <div style={{width:'100%',background:hourly[h]>0?(h===peakH?'var(--orange)':'var(--orange-mid)'):'#f0ebe5',height:`${(hourly[h]/maxH)*52}px`,borderRadius:'2px 2px 0 0',minHeight:2,transition:'height .3s'}}/>
+                  </div>
+                ))}
+              </div>
+              <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:'var(--muted)',marginTop:4}}>
+                <span>0時</span><span>6時</span><span>12時</span><span>18時</span><span>23時</span>
+              </div>
+              </>}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 每日趨勢（week/month） */}
+      {range!=='today'&&(
+        <div className="card">
+          <div style={{fontWeight:700,marginBottom:14}}>📈 {rangeLabel[range]}每日營收趨勢</div>
+          {dailyArr.length===0?<div style={{color:'var(--muted)',fontSize:13,textAlign:'center',padding:'20px 0'}}>尚無資料</div>:(
+            <div>
+              <div style={{display:'flex',alignItems:'flex-end',gap:6,height:100,marginBottom:6}}>
+                {dailyArr.map(([d,v])=>(
+                  <div key={d} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:2}}>
+                    <div style={{fontSize:10,color:'var(--orange)',fontWeight:600}}>${(v/1000).toFixed(1)}k</div>
+                    <div style={{width:'100%',background:'var(--orange)',height:`${(v/maxDay)*80}px`,borderRadius:'4px 4px 0 0',minHeight:4}}/>
+                    <div style={{fontSize:10,color:'var(--muted)',whiteSpace:'nowrap'}}>{d}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 訂單明細表 */}
+      <div className="card" style={{padding:0,marginTop:16}}>
+        <div style={{padding:'14px 16px',fontWeight:700,borderBottom:'1px solid var(--border)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <span>🧾 {rangeLabel[range]}訂單明細</span>
+          <span style={{fontSize:12,color:'var(--muted)'}}>{orders.length} 筆</span>
+        </div>
+        <div style={{maxHeight:300,overflowY:'auto'}}>
+          <table>
+            <thead><tr><th>訂單編號</th><th>時間</th><th>品項</th><th>金額</th><th>付款</th></tr></thead>
+            <tbody>
+              {orders.length===0?<tr><td colSpan={5} style={{textAlign:'center',color:'var(--muted)',padding:20}}>尚無資料</td></tr>:
+              orders.map(o=>{
+                const items=(o.items||[]).map(i=>`${i.name}×${i.qty||1}`).join('、');
+                return(
+                  <tr key={o.id}>
+                    <td><strong>{o.order_no}</strong></td>
+                    <td style={{fontSize:12,color:'var(--muted)'}}>{new Date(o.created_at).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}</td>
+                    <td style={{fontSize:12,maxWidth:180,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{items}</td>
+                    <td><strong style={{color:'var(--orange)'}}>${o.total}</strong></td>
+                    <td><span className="tag" style={{fontSize:10}}>{o.payment_method}</span></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
