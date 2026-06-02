@@ -984,6 +984,7 @@ function AnalyticsPage(){
   );
 }
 
+
 /* ── CRM PAGE ── */
 function CRMPage({showToast}){
   const[customers,setCustomers]=useState([]);
@@ -992,186 +993,289 @@ function CRMPage({showToast}){
   const[selected,setSelected]=useState(null);
   const[custOrders,setCustOrders]=useState([]);
   const[ordersLoading,setOrdersLoading]=useState(false);
-  const[editName,setEditName]=useState('');
-  const[editing,setEditing]=useState(false);
+  const[adding,setAdding]=useState(false);
+  const[editMode,setEditMode]=useState(false);
+  const[form,setForm]=useState({name:'',phone:'',gender:'-'});
+  const[saving,setSaving]=useState(false);
 
   async function load(){
     setLoading(true);
-    const{data}=await db.from('customers').select('*').order('total_spent',{ascending:false});
+    const{data}=await db.from('customers').select('*').order('created_at',{ascending:false});
     setCustomers(data||[]);
     setLoading(false);
   }
   useEffect(()=>{load()},[]);
 
   async function selectCustomer(c){
-    setSelected(c);
-    setEditName(c.name||'');
-    setEditing(false);
+    setSelected(c); setEditMode(false);
     setOrdersLoading(true);
     const{data}=await db.from('orders').select('*').eq('member_phone',c.phone).order('created_at',{ascending:false}).limit(20);
-    setCustOrders(data||[]);
-    setOrdersLoading(false);
+    setCustOrders(data||[]); setOrdersLoading(false);
   }
 
-  async function saveName(){
-    await db.from('customers').update({name:editName}).eq('id',selected.id);
-    showToast('✅ 名稱已更新');
-    setEditing(false);
-    setSelected(s=>({...s,name:editName}));
-    load();
+  async function saveEdit(){
+    setSaving(true);
+    const upd={name:form.name};
+    try{ upd.gender=form.gender; }catch(e){}
+    await db.from('customers').update(upd).eq('id',selected.id);
+    showToast('✅ 會員資料已更新');
+    setSelected(s=>({...s,...upd}));
+    setSaving(false); setEditMode(false); load();
+  }
+
+  async function addCustomer(){
+    if(!form.phone||!form.name){showToast('請填寫姓名和手機');return;}
+    setSaving(true);
+    const newData={phone:form.phone.trim(),name:form.name,total_orders:0,total_spent:0};
+    try{newData.gender=form.gender||'-';}catch(e){}
+    const{error}=await db.from('customers').insert([newData]);
+    setSaving(false);
+    if(error){showToast('❌ 新增失敗：'+error.message);return;}
+    showToast('✅ 會員已新增');
+    setAdding(false); setForm({name:'',phone:'',gender:'-'}); load();
   }
 
   async function deleteCustomer(id){
     await db.from('customers').delete().eq('id',id);
-    showToast('🗑️ 顧客已刪除');
-    setSelected(null);
-    load();
+    showToast('🗑️ 已刪除'); setSelected(null); load();
   }
+
+  function getLevel(spent){
+    if(spent>=5000) return{l:'黑卡',color:'#fff',bg:'#222',off:'3% OFF',dot:'#555'};
+    if(spent>=2000) return{l:'金卡',color:'#7a5500',bg:'#fff8e1',off:'5% OFF',dot:'#f9a825'};
+    if(spent>=500)  return{l:'銀卡',color:'#546e7a',bg:'#eceff1',off:'1% OFF',dot:'#78909c'};
+    return{l:'一般會員',color:'#555',bg:'#f5f5f5',off:'',dot:'#bdbdbd'};
+  }
+
+  const total=customers.length;
+  const normal=customers.filter(c=>(c.total_spent||0)<500).length;
+  const black=customers.filter(c=>(c.total_spent||0)>=5000).length;
+  const gold=customers.filter(c=>(c.total_spent||0)>=2000&&(c.total_spent||0)<5000).length;
 
   const filtered=customers.filter(c=>
-    !search||(c.phone||'').includes(search)||(c.name||'').includes(search)
+    !search.trim()||
+    (c.phone||'').includes(search)||
+    (c.name||'').includes(search)||
+    (c.member_id||'').includes(search)
   );
-
-  // 顧客等級
-  function getLevel(spent){
-    if(spent>=5000) return{l:'黑卡',c:'#1a1a1a',bg:'#f5f5f5'};
-    if(spent>=2000) return{l:'金卡',c:'#b8860b',bg:'#fffde7'};
-    if(spent>=500) return{l:'銀卡',c:'#607d8b',bg:'#eceff1'};
-    return{l:'新顧客',c:'var(--muted)',bg:'#f5f5f5'};
-  }
 
   if(loading) return<div className="loading"><div className="spin"/></div>;
 
   return(
-    <div style={{display:'grid',gridTemplateColumns:'1fr 1.2fr',gap:16,height:'calc(100vh - 92px)'}}>
-      {/* LEFT: 顧客列表 */}
-      <div style={{display:'flex',flexDirection:'column',gap:12,overflow:'hidden'}}>
-        {/* 統計總覽 */}
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10}}>
-          <div className="stat-card"><div className="stat-label">總顧客數</div><div className="stat-val org">{customers.length}</div></div>
-          <div className="stat-card"><div className="stat-label">今日新顧客</div><div className="stat-val grn">{customers.filter(c=>new Date(c.created_at).toDateString()===new Date().toDateString()).length}</div></div>
-          <div className="stat-card"><div className="stat-label">回頭客</div><div className="stat-val">{customers.filter(c=>c.total_orders>1).length}</div></div>
+    <div>
+      {/* 統計卡 */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:16}}>
+        <div style={{background:'#fff',border:'1px solid var(--border)',borderRadius:10,padding:'16px 20px'}}>
+          <div style={{fontSize:12,color:'var(--muted)',marginBottom:6}}>👥 會員總數</div>
+          <div style={{fontSize:32,fontWeight:700}}>{total}</div>
         </div>
-
-        {/* 搜尋 */}
-        <div className="search-bar">
-          <span style={{color:'var(--muted)'}}>🔍</span>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="搜尋電話或姓名..."/>
+        <div style={{background:'#fff',border:'1px solid var(--border)',borderRadius:10,padding:'16px 20px'}}>
+          <div style={{fontSize:12,color:'var(--muted)',marginBottom:6}}>一般會員</div>
+          <div style={{fontSize:32,fontWeight:700}}>{normal}</div>
+          <div style={{fontSize:11,color:'var(--muted)',marginTop:4}}>無折扣</div>
         </div>
+        <div style={{background:'#fff',border:'2px solid #1a1a1a',borderRadius:10,padding:'16px 20px'}}>
+          <div style={{fontSize:12,color:'var(--muted)',marginBottom:6}}>黑卡會員</div>
+          <div style={{fontSize:32,fontWeight:700,color:'var(--orange)'}}>{black}</div>
+          <div style={{fontSize:11,color:'var(--muted)',marginTop:4}}>消費滿 NT$10,000 · 3% OFF</div>
+        </div>
+        <div style={{background:'#fff',border:'2px solid #f9a825',borderRadius:10,padding:'16px 20px'}}>
+          <div style={{fontSize:12,color:'var(--muted)',marginBottom:6}}>金卡會員</div>
+          <div style={{fontSize:32,fontWeight:700,color:'var(--orange)'}}>{gold}</div>
+          <div style={{fontSize:11,color:'var(--muted)',marginTop:4}}>消費滿 NT$50,000 · 9% OFF</div>
+        </div>
+      </div>
 
-        {/* 列表 */}
-        <div style={{flex:1,overflowY:'auto'}}>
-          <div className="card" style={{padding:0}}>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1.4fr',gap:16}}>
+        {/* LEFT */}
+        <div style={{display:'flex',flexDirection:'column',gap:10}}>
+          {/* 搜尋 + 新增 */}
+          <div style={{display:'flex',gap:8,alignItems:'center'}}>
+            <div className="search-bar" style={{flex:1,marginBottom:0}}>
+              <span style={{color:'var(--muted)'}}>🔍</span>
+              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="搜尋名字/手機/會員編號..."/>
+            </div>
+            <button className="btn btn-orange btn-sm" onClick={()=>{setAdding(!adding);setEditMode(false);setSelected(null);setForm({name:'',phone:'',gender:'-'})}}>＋新增會員</button>
+          </div>
+
+          {/* 新增表單 */}
+          {adding&&(
+            <div className="card">
+              <div style={{fontWeight:700,marginBottom:14,fontSize:15}}>新增會員</div>
+              <div className="fg"><label className="fl">姓名</label><input className="fi" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="請輸入姓名"/></div>
+              <div className="fg"><label className="fl">手機</label><input className="fi" value={form.phone} onChange={e=>setForm(f=>({...f,phone:e.target.value}))} placeholder="0912345678"/></div>
+              <div className="fg">
+                <label className="fl">性別</label>
+                <div style={{display:'flex',gap:8}}>
+                  {['男','女','-'].map(g=>(
+                    <button key={g} onClick={()=>setForm(f=>({...f,gender:g}))}
+                      style={{padding:'8px 20px',border:`1.5px solid ${form.gender===g?'var(--orange)':'var(--border)'}`,borderRadius:8,background:form.gender===g?'var(--orange)':'#fff',color:form.gender===g?'#fff':'var(--text)',fontFamily:'inherit',fontSize:14,cursor:'pointer',fontWeight:form.gender===g?700:400}}>
+                      {g}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div style={{display:'flex',gap:8,marginTop:8}}>
+                <button className="btn btn-orange btn-sm" onClick={addCustomer} disabled={saving}>{saving?'儲存中...':'儲存'}</button>
+                <button className="btn btn-gray btn-sm" onClick={()=>setAdding(false)}>取消</button>
+              </div>
+            </div>
+          )}
+
+          {/* 表格 */}
+          <div className="card" style={{padding:0,overflow:'auto',maxHeight:'calc(100vh - 310px)'}}>
             <table>
-              <thead><tr><th>顧客</th><th>等級</th><th>訂單</th><th>消費</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>會員編號</th><th>姓名</th><th>性別</th><th>手機</th>
+                  <th>等級</th><th>折扣</th><th>點數</th>
+                  <th>累計消費</th><th>加入日期</th><th>操作</th>
+                </tr>
+              </thead>
               <tbody>
                 {filtered.length===0
-                  ? <tr><td colSpan={4} style={{textAlign:'center',color:'var(--muted)',padding:20}}>尚無顧客資料<br/><span style={{fontSize:12}}>顧客從點餐系統填入電話後自動建立</span></td></tr>
-                  : filtered.map(c=>{
-                    const lv=getLevel(c.total_spent);
-                    return(
-                      <tr key={c.id} style={{cursor:'pointer',background:selected?.id===c.id?'var(--orange-light)':''}} onClick={()=>selectCustomer(c)}>
-                        <td>
-                          <div style={{fontWeight:500}}>{c.name||'顧客'}</div>
-                          <div style={{fontSize:11,color:'var(--muted)'}}>{c.phone}</div>
-                        </td>
-                        <td><span style={{fontSize:11,padding:'2px 8px',borderRadius:10,background:lv.bg,color:lv.c,fontWeight:600}}>{lv.l}</span></td>
-                        <td style={{fontWeight:600}}>{c.total_orders}</td>
-                        <td style={{fontWeight:600,color:'var(--orange)'}}>${(c.total_spent||0).toLocaleString()}</td>
-                      </tr>
-                    );
-                  })
+                  ? <tr><td colSpan={10} style={{textAlign:'center',color:'var(--muted)',padding:24}}>尚無會員資料</td></tr>
+                  : filtered.map((c,idx)=>{
+                      const lv=getLevel(c.total_spent||0);
+                      const mid='M'+String(filtered.length-idx).padStart(3,'0');
+                      const joined=c.created_at?new Date(c.created_at).toLocaleDateString('zh-TW').replace(/\//g,'-'):'-';
+                      const pts=Math.floor((c.total_spent||0)/10);
+                      return(
+                        <tr key={c.id}
+                          style={{cursor:'pointer',background:selected?.id===c.id?'var(--orange-light)':''}}
+                          onClick={()=>selectCustomer(c)}>
+                          <td style={{fontSize:11,fontFamily:'monospace',color:'var(--muted)'}}>{mid}</td>
+                          <td style={{fontWeight:500}}>{c.name||'—'}</td>
+                          <td style={{color:'var(--muted)',fontSize:12}}>{c.gender||'—'}</td>
+                          <td style={{fontSize:12}}>{c.phone}</td>
+                          <td>
+                            <span style={{display:'inline-flex',alignItems:'center',gap:4,fontSize:11,padding:'2px 8px',borderRadius:10,background:lv.bg,color:lv.color,fontWeight:600,border:`1px solid ${lv.dot}`}}>
+                              <span style={{width:6,height:6,borderRadius:'50%',background:lv.dot,display:'inline-block'}}/>
+                              {lv.l}
+                            </span>
+                          </td>
+                          <td style={{fontSize:12,color:lv.off?'var(--orange)':'var(--muted)',fontWeight:600}}>{lv.off||'—'}</td>
+                          <td style={{fontSize:13}}>
+                            <span style={{color:'#f57f17',marginRight:2}}>⭐</span>{pts}
+                          </td>
+                          <td style={{fontWeight:600,fontSize:13}}>NT${(c.total_spent||0).toLocaleString()}</td>
+                          <td style={{fontSize:11,color:'var(--muted)',whiteSpace:'nowrap'}}>{joined}</td>
+                          <td>
+                            <div style={{display:'flex',gap:4}}>
+                              <button className="btn btn-outline btn-sm" onClick={e=>{e.stopPropagation();selectCustomer(c);setEditMode(true);setForm({name:c.name||'',phone:c.phone,gender:c.gender||'-'});}}>詳情</button>
+                              <button className="btn btn-red btn-sm" onClick={e=>{e.stopPropagation();deleteCustomer(c.id);}}>✕</button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
                 }
               </tbody>
             </table>
           </div>
         </div>
-      </div>
 
-      {/* RIGHT: 顧客詳情 */}
-      <div style={{overflowY:'auto'}}>
-        {!selected
-          ? <div className="card" style={{textAlign:'center',padding:'60px 20px',color:'var(--muted)'}}>
-              <div style={{fontSize:40,marginBottom:12}}>👤</div>
-              <div>點選左側顧客查看詳情</div>
-            </div>
-          : <div>
-              {/* 顧客資料卡 */}
+        {/* RIGHT: 詳情面板 */}
+        <div style={{overflowY:'auto',maxHeight:'calc(100vh - 200px)'}}>
+          {!selected
+            ? <div className="card" style={{textAlign:'center',padding:'80px 20px',color:'var(--muted)'}}>
+                <div style={{fontSize:52,marginBottom:12}}>👤</div>
+                <div style={{fontSize:14}}>點選左側會員查看詳情</div>
+              </div>
+            :<div>
               <div className="card" style={{marginBottom:12}}>
+                {/* 頂部：頭像 + 名字 + 操作按鈕 */}
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:14}}>
                   <div style={{display:'flex',alignItems:'center',gap:12}}>
-                    <div style={{width:48,height:48,background:'var(--orange)',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:20,fontWeight:700}}>
+                    <div style={{width:52,height:52,background:'var(--orange)',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:22,fontWeight:700}}>
                       {(selected.name||'顧')[0]}
                     </div>
                     <div>
-                      {editing
-                        ? <div style={{display:'flex',gap:6,alignItems:'center'}}>
-                            <input className="fi" value={editName} onChange={e=>setEditName(e.target.value)} style={{width:120,padding:'6px 10px',fontSize:14}}/>
-                            <button className="btn btn-orange btn-sm" onClick={saveName}>存</button>
-                            <button className="btn btn-gray btn-sm" onClick={()=>setEditing(false)}>取消</button>
-                          </div>
-                        : <div style={{display:'flex',alignItems:'center',gap:6}}>
-                            <span style={{fontWeight:700,fontSize:16}}>{selected.name||'顧客'}</span>
-                            <button className="btn btn-gray btn-sm" onClick={()=>setEditing(true)}>✏️</button>
-                          </div>
-                      }
+                      <div style={{fontWeight:700,fontSize:17}}>{selected.name||'顧客'}</div>
                       <div style={{fontSize:12,color:'var(--muted)',marginTop:2}}>📱 {selected.phone}</div>
+                      {selected.gender&&selected.gender!=='-'&&<div style={{fontSize:12,color:'var(--muted)'}}>{selected.gender==='男'?'♂ 男':'♀ 女'}</div>}
                     </div>
                   </div>
-                  <button className="btn btn-red btn-sm" onClick={()=>deleteCustomer(selected.id)}>刪除</button>
+                  <div style={{display:'flex',gap:6}}>
+                    {!editMode&&<button className="btn btn-outline btn-sm" onClick={()=>{setEditMode(true);setForm({name:selected.name||'',phone:selected.phone,gender:selected.gender||'-'});}}>✏️ 編輯</button>}
+                    <button className="btn btn-red btn-sm" onClick={()=>deleteCustomer(selected.id)}>刪除</button>
+                  </div>
                 </div>
 
-                {/* 等級 + 統計 */}
-                {(()=>{const lv=getLevel(selected.total_spent); return(
-                  <div style={{background:lv.bg,borderRadius:8,padding:'10px 14px',marginBottom:12,display:'flex',alignItems:'center',gap:8}}>
-                    <span style={{fontSize:18}}>🏅</span>
-                    <span style={{fontWeight:700,color:lv.c}}>{lv.l}</span>
-                    <span style={{fontSize:12,color:'var(--muted)',marginLeft:4}}>
-                      {lv.l==='新顧客'?'消費滿 $500 升級銀卡':lv.l==='銀卡'?'消費滿 $2,000 升級金卡':lv.l==='金卡'?'消費滿 $5,000 升級黑卡':'最高等級會員 🎉'}
-                    </span>
+                {/* 等級 */}
+                {(()=>{const lv=getLevel(selected.total_spent||0);return(
+                  <div style={{display:'inline-flex',alignItems:'center',gap:8,padding:'6px 14px',borderRadius:20,background:lv.bg,color:lv.color,border:`1px solid ${lv.dot}`,marginBottom:14,fontWeight:700,fontSize:13}}>
+                    <span style={{width:8,height:8,borderRadius:'50%',background:lv.dot,display:'inline-block'}}/>
+                    {lv.l} {lv.off&&<span style={{fontWeight:400,fontSize:12,opacity:.8}}>{lv.off}</span>}
                   </div>
                 )})()}
 
-                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10}}>
-                  <div style={{textAlign:'center',padding:'10px 0',background:'var(--bg)',borderRadius:8}}>
-                    <div style={{fontSize:11,color:'var(--muted)',marginBottom:4}}>總訂單</div>
-                    <div style={{fontSize:22,fontWeight:700,color:'var(--orange)'}}>{selected.total_orders}</div>
-                  </div>
-                  <div style={{textAlign:'center',padding:'10px 0',background:'var(--bg)',borderRadius:8}}>
-                    <div style={{fontSize:11,color:'var(--muted)',marginBottom:4}}>總消費</div>
-                    <div style={{fontSize:18,fontWeight:700}}>${(selected.total_spent||0).toLocaleString()}</div>
-                  </div>
-                  <div style={{textAlign:'center',padding:'10px 0',background:'var(--bg)',borderRadius:8}}>
-                    <div style={{fontSize:11,color:'var(--muted)',marginBottom:4}}>客單價</div>
-                    <div style={{fontSize:18,fontWeight:700}}>${selected.total_orders?Math.round(selected.total_spent/selected.total_orders):0}</div>
-                  </div>
-                </div>
-
-                {selected.last_order_at&&(
-                  <div style={{fontSize:12,color:'var(--muted)',marginTop:10}}>
-                    最後消費：{new Date(selected.last_order_at).toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}
+                {/* 編輯表單 */}
+                {editMode&&(
+                  <div style={{background:'var(--bg)',borderRadius:10,padding:14,marginBottom:14}}>
+                    <div className="fg">
+                      <label className="fl">姓名</label>
+                      <input className="fi" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/>
+                    </div>
+                    <div className="fg">
+                      <label className="fl">手機（不可修改）</label>
+                      <div style={{padding:'9px 12px',background:'#e8e0d8',borderRadius:8,fontSize:14,color:'var(--muted)'}}>{form.phone}</div>
+                    </div>
+                    <div className="fg">
+                      <label className="fl">性別</label>
+                      <div style={{display:'flex',gap:8}}>
+                        {['男','女','-'].map(g=>(
+                          <button key={g} onClick={()=>setForm(f=>({...f,gender:g}))}
+                            style={{padding:'7px 18px',border:`1.5px solid ${form.gender===g?'var(--orange)':'var(--border)'}`,borderRadius:8,background:form.gender===g?'var(--orange)':'#fff',color:form.gender===g?'#fff':'var(--text)',fontFamily:'inherit',fontSize:13,cursor:'pointer'}}>
+                            {g}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div style={{display:'flex',gap:8,marginTop:8}}>
+                      <button className="btn btn-orange btn-sm" onClick={saveEdit} disabled={saving}>{saving?'儲存中...':'儲存'}</button>
+                      <button className="btn btn-gray btn-sm" onClick={()=>setEditMode(false)}>取消</button>
+                    </div>
                   </div>
                 )}
+
+                {/* 數字統計 */}
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10}}>
+                  {[
+                    {l:'累計消費',v:'NT$'+(selected.total_spent||0).toLocaleString(),c:'var(--orange)'},
+                    {l:'訂單數',v:(selected.total_orders||0)+'筆',c:'var(--text)'},
+                    {l:'點數',v:'⭐ '+Math.floor((selected.total_spent||0)/10),c:'#f57f17'},
+                  ].map(s=>(
+                    <div key={s.l} style={{textAlign:'center',padding:'10px 6px',background:'var(--bg)',borderRadius:8}}>
+                      <div style={{fontSize:11,color:'var(--muted)',marginBottom:4}}>{s.l}</div>
+                      <div style={{fontSize:15,fontWeight:700,color:s.c}}>{s.v}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* 消費紀錄 */}
               <div className="card" style={{padding:0}}>
-                <div style={{padding:'12px 16px',fontWeight:700,borderBottom:'1px solid var(--border)'}}>消費紀錄</div>
+                <div style={{padding:'12px 16px',fontWeight:700,borderBottom:'1px solid var(--border)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <span>消費紀錄</span>
+                  <span style={{fontSize:12,color:'var(--muted)'}}>{custOrders.length} 筆</span>
+                </div>
                 {ordersLoading
                   ? <div className="loading"><div className="spin"/></div>
                   : custOrders.length===0
                     ? <div style={{textAlign:'center',color:'var(--muted)',padding:20,fontSize:13}}>尚無消費紀錄</div>
                     : <table>
-                        <thead><tr><th>訂單編號</th><th>時間</th><th>品項</th><th>金額</th></tr></thead>
+                        <thead><tr><th>訂單</th><th>時間</th><th>品項</th><th>金額</th><th>付款</th></tr></thead>
                         <tbody>
                           {custOrders.map(o=>{
-                            const items=(o.items||[]).map(i=>`${i.name}×${i.qty||1}`).join('、');
+                            const items=(o.items||[]).map(i=>i.name+'×'+(i.qty||1)).join('、');
                             return(
                               <tr key={o.id}>
-                                <td><strong>{o.order_no}</strong></td>
-                                <td style={{fontSize:11,color:'var(--muted)'}}>{new Date(o.created_at).toLocaleDateString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</td>
+                                <td><strong style={{color:'var(--orange)'}}>{o.order_no}</strong></td>
+                                <td style={{fontSize:11,color:'var(--muted)',whiteSpace:'nowrap'}}>{new Date(o.created_at).toLocaleDateString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</td>
                                 <td style={{fontSize:12,maxWidth:140,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{items}</td>
-                                <td style={{color:'var(--orange)',fontWeight:600}}>${o.total}</td>
+                                <td style={{color:'var(--orange)',fontWeight:600,whiteSpace:'nowrap'}}>NT${o.total}</td>
+                                <td><span className="tag" style={{fontSize:10}}>{o.payment_method}</span></td>
                               </tr>
                             );
                           })}
@@ -1180,7 +1284,8 @@ function CRMPage({showToast}){
                 }
               </div>
             </div>
-        }
+          }
+        </div>
       </div>
     </div>
   );
