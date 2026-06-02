@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>路易莎咖啡</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --org:#E87722;--org-dark:#C45E0A;--org-light:#FFF3E8;
+  --bg:#F5F5F5;--white:#fff;--text:#1a1a1a;--muted:#888;--border:#E8E8E8;
+  --red:#E53935;--nav-h:64px;--top-h:52px;
+}
+html,body{height:100%;background:#f0ede8}
+body{font-family:'Noto Sans TC',sans-serif;color:var(--text);max-width:420px;margin:0 auto;background:var(--white);position:relative;min-height:100vh}
+#root{display:flex;flex-direction:column;min-height:100vh}
+
+/* NAV */
+.top-bar{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;z-index:100;background:var(--white);border-bottom:1px solid var(--border);height:var(--top-h);display:flex;align-items:center;padding:0 16px;justify-content:space-between}
+.top-bar h1{font-size:17px;font-weight:700}
+.top-bar .back{font-size:20px;cursor:pointer;padding:4px 8px 4px 0;color:var(--text)}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:var(--white);border-top:1px solid var(--border);display:flex;height:var(--nav-h);z-index:100}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;font-size:11px;color:var(--muted);border:none;background:none;font-family:inherit;transition:color .15s}
+.nav-btn.active{color:var(--org)}
+.nav-btn .ni{font-size:22px}
+.page-wrap{padding-top:var(--top-h);padding-bottom:var(--nav-h);min-height:100vh;background:var(--bg)}
+
+/* HOME */
+.banner{width:100%;display:block;background:var(--org);position:relative;overflow:hidden;border-radius:12px;margin:12px 0}
+.banner-inner{padding:20px;color:#fff}
+.banner-inner .tag-row{display:flex;gap:6px;margin-bottom:8px}
+.banner-tag{background:rgba(255,255,255,0.25);color:#fff;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.banner-inner h2{font-size:22px;font-weight:900;line-height:1.2;margin-bottom:4px}
+.banner-price{font-size:32px;font-weight:900;position:absolute;top:16px;right:20px}
+.section-title{font-size:17px;font-weight:700;color:var(--org);margin-bottom:10px}
+.store-card{background:var(--white);border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.store-img{width:100%;height:180px;object-fit:cover;background:#ddd;display:flex;align-items:center;justify-content:center;font-size:40px}
+.store-info{padding:14px 16px}
+.store-name{font-size:18px;font-weight:700;margin-bottom:4px}
+.store-meta{font-size:13px;color:var(--muted)}
+.launch-btn{width:calc(100% - 32px);margin:16px;padding:18px;background:var(--org);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:700;font-family:inherit;cursor:pointer;display:block}
+.search-box{display:flex;align-items:center;gap:8px;background:#f0f0f0;border-radius:24px;padding:10px 16px;margin:0 16px 4px}
+.search-box input{flex:1;border:none;background:none;outline:none;font-size:14px;font-family:inherit;color:var(--text)}
+.loc-bar{display:flex;align-items:center;gap:6px;padding:12px 16px 8px;font-size:14px;font-weight:500}
+.loc-bar .arr{color:var(--muted);font-size:12px;margin-left:2px}
+
+/* MENU */
+.cat-bar{display:flex;border-bottom:2px solid var(--border);background:var(--white);position:sticky;top:var(--top-h);z-index:50;overflow-x:auto}
+.cat-bar::-webkit-scrollbar{display:none}
+.cat-item{padding:12px 18px;font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.cat-item.active{color:var(--org);border-bottom-color:var(--org);font-weight:700}
+.prod-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 16px}
+.prod-card{background:var(--white);border-radius:12px;overflow:hidden;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.06);transition:transform .15s}
+.prod-card:active{transform:scale(.97)}
+.prod-card img{width:100%;height:140px;object-fit:cover;background:#f5f0eb}
+.prod-info{padding:10px 12px 14px}
+.prod-name{font-size:14px;font-weight:600;margin-bottom:4px;line-height:1.3}
+.prod-price{font-size:15px;font-weight:700;color:var(--org)}
+
+/* CUSTOMIZE MODAL */
+.modal-wrap{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(0,0,0,.45)}
+.modal-sheet{background:var(--white);border-radius:24px 24px 0 0;padding:24px 20px 40px;max-height:90vh;overflow-y:auto}
+.modal-close{position:absolute;top:20px;right:20px;font-size:22px;cursor:pointer;color:var(--muted);background:none;border:none}
+.modal-title{font-size:22px;font-weight:700;margin-bottom:6px}
+.modal-meta{font-size:12px;color:var(--muted);margin-bottom:20px}
+.modal-section{margin-bottom:20px}
+.modal-section-title{font-size:16px;font-weight:700;margin-bottom:10px}
+.opt-chips{display:flex;flex-wrap:wrap;gap:8px}
+.opt-chip{padding:10px 18px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;cursor:pointer;transition:all .12s;background:var(--white);font-family:inherit}
+.opt-chip.sel{border-color:var(--org);color:var(--org);font-weight:600}
+.modal-note{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px;margin-top:12px}
+.add-cart-btn{width:100%;padding:18px;background:var(--org);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:20px}
+
+/* CART */
+.cart-page{padding:0 16px}
+.cart-section{background:var(--white);border-radius:12px;padding:16px;margin-bottom:12px}
+.cart-row{display:flex;justify-content:space-between;align-items:flex-start;padding:4px 0}
+.cart-item-name{font-size:15px;font-weight:500}
+.cart-promo{font-size:12px;color:var(--org);margin-top:2px}
+.cart-price{font-size:15px;font-weight:600}
+.divider{border:none;border-top:1px solid var(--border);margin:12px 0}
+.cart-total-row{display:flex;justify-content:space-between;align-items:center}
+.cart-total-label{font-size:16px;font-weight:700}
+.cart-total-price{font-size:20px;font-weight:700}
+.pickup-toggle{display:flex;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px}
+.pickup-btn{flex:1;padding:14px;font-size:14px;font-family:inherit;font-weight:500;background:var(--white);border:none;cursor:pointer;transition:all .15s}
+.pickup-btn.active{background:var(--white);font-weight:700;color:var(--text);box-shadow:inset 0 0 0 2px var(--text)}
+.pay-section-title{font-size:16px;font-weight:700;margin-bottom:12px}
+.pay-chips{display:flex;gap:8px;flex-wrap:wrap}
+.pay-chip{padding:10px 20px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;cursor:pointer;background:var(--white);font-family:inherit;transition:all .12s}
+.pay-chip.sel{border-color:var(--org);color:var(--org);font-weight:600}
+.checkout-btn{width:100%;padding:18px;background:var(--org);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:4px}
+.empty-cart{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-cart .ei{font-size:48px;margin-bottom:12px}
+
+/* CONFIRM */
+.confirm-page{padding:0 16px}
+.confirm-section{background:var(--white);border-radius:12px;padding:16px;margin-bottom:12px}
+.confirm-block{background:#f5f5f5;border-radius:10px;padding:14px 16px;margin-bottom:12px;text-align:center}
+.confirm-block-title{font-size:14px;color:var(--muted);margin-bottom:8px;font-weight:500}
+.confirm-block-val{font-size:48px;font-weight:900;color:var(--org);line-height:1}
+.confirm-block-time{font-size:40px;font-weight:900;color:var(--org);line-height:1}
+
+/* MY PAGE */
+.my-page{padding:20px 16px}
+.my-avatar{width:72px;height:72px;background:var(--org);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 12px}
+.my-name{text-align:center;font-size:18px;font-weight:700;margin-bottom:4px}
+.my-sub{text-align:center;font-size:13px;color:var(--muted);margin-bottom:24px}
+.my-card{background:var(--white);border-radius:12px;padding:16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.my-card-left{font-size:15px;font-weight:500}
+.my-card-arrow{color:var(--muted);font-size:18px}
+.black-card{background:linear-gradient(135deg,#1a1a1a,#444);color:#fff;border-radius:14px;padding:20px;margin-bottom:12px}
+.black-card-title{font-size:13px;opacity:.7;margin-bottom:4px}
+.black-card-name{font-size:20px;font-weight:700;margin-bottom:16px}
+.black-card-pts{font-size:28px;font-weight:900;color:var(--org)}
+.black-card-pts-label{font-size:12px;opacity:.6;margin-top:2px}
+
+/* TOAST */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:12px 24px;border-radius:24px;font-size:13px;z-index:999;white-space:nowrap;animation:fi .2s}
+@keyframes fi{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+.pad16{padding:0 16px}
+.mt12{margin-top:12px}
+.loading{display:flex;align-items:center;justify-content:center;padding:60px;flex-direction:column;gap:10px;color:var(--muted)}
+.spin{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--org);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef} = React;
+const db = supabase.createClient(
+  'https://rvkfhetfdgsjmapztocd.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2a2ZoZXRmZGdzam1hcHp0b2NkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMTA1NjcsImV4cCI6MjA5NTc4NjU2N30.4oBlbOX62v4AZJdpcG21NqBLa3IBMiv9-2WMmMU_8kU'
+);
+
+function useToast(){
+  const[t,setT]=useState(null);
+  useEffect(()=>{if(t){const id=setTimeout(()=>setT(null),2200);return()=>clearTimeout(id)}},[t]);
+  return[setT, t?<div className="toast">{t}</div>:null];
+}
+
+function App(){
+  const[tab,setTab]=useState('home');
+  const[cart,setCart]=useState([]);
+  const[confirmOrder,setConfirmOrder]=useState(null);
+  const[showToast,toastEl]=useToast();
+  const[searching,setSearching]=useState(false);
+  const[searchQ,setSearchQ]=useState('');
+  const searchRef=React.useRef(null);
+
+  const cartCount=cart.reduce((s,i)=>s+i.qty,0);
+  const titles={home:'',menu:'逢甲大學店',cart:'購物車',confirm:'確認明細',my:'我的'};
+  const showBack=['menu','confirm'].includes(tab);
+
+  function goBack(){
+    if(tab==='menu'){ setSearching(false); setSearchQ(''); setTab('home'); }
+    if(tab==='confirm') setTab('cart');
+  }
+
+  function openSearch(){
+    setSearching(true);
+    setTimeout(()=>searchRef.current&&searchRef.current.focus(),100);
+  }
+
+  return(
+    <div style={{display:'flex',flexDirection:'column',minHeight:'100vh',background:'var(--bg)'}}>
+      {/* Top Bar */}
+      <div className="top-bar">
+        {searching&&tab==='menu'
+          ? <div style={{display:'flex',alignItems:'center',gap:8,flex:1}}>
+              <button onClick={()=>{setSearching(false);setSearchQ('');}} style={{background:'none',border:'none',fontSize:20,cursor:'pointer',padding:'0 4px',color:'var(--text)'}}>←</button>
+              <input ref={searchRef} value={searchQ} onChange={e=>setSearchQ(e.target.value)}
+                placeholder="搜尋商品名稱..."
+                style={{flex:1,border:'none',outline:'none',fontSize:15,fontFamily:'inherit',background:'transparent'}}/>
+              {searchQ&&<button onClick={()=>setSearchQ('')} style={{background:'none',border:'none',fontSize:16,cursor:'pointer',color:'#aaa',padding:'0 4px'}}>✕</button>}
+            </div>
+          : <div style={{display:'flex',alignItems:'center',gap:4,flex:1}}>
+              {showBack&&<span className="back" onClick={goBack}>←</span>}
+              <h1>{titles[tab]}</h1>
+            </div>
+        }
+        {tab==='menu'&&!searching&&<span style={{fontSize:22,cursor:'pointer'}} onClick={openSearch}>🔍</span>}
+        {tab==='home'&&<span style={{fontSize:22}}></span>}
+      </div>
+
+      {/* Pages */}
+      <div className="page-wrap" style={{flex:1}}>
+        {tab==='home'&&<HomePage setTab={setTab}/>}
+        {tab==='menu'&&<MenuPage cart={cart} setCart={setCart} showToast={showToast} searchQ={searchQ}/>}
+        {tab==='cart'&&<CartPage cart={cart} setCart={setCart} setTab={setTab} setConfirmOrder={setConfirmOrder} showToast={showToast}/>}
+        {tab==='confirm'&&<ConfirmPage order={confirmOrder} setTab={setTab}/>}
+        {tab==='my'&&<MyPage/>}
+      </div>
+
+      {/* Bottom Nav */}
+      <div className="bottom-nav">
+        {[
+          {k:'home',i:'🏠',l:'首頁'},
+          {k:'menu',i:'☕',l:'點購'},
+          {k:'cart',i:'🛒',l:'購物車',badge:cartCount},
+          {k:'my',i:'👤',l:'我的'},
+        ].map(n=>(
+          <button key={n.k} className={`nav-btn${tab===n.k?' active':''}`} onClick={()=>setTab(n.k)}>
+            <span className="ni" style={{position:'relative'}}>
+              {n.i}
+              {n.badge>0&&<span style={{position:'absolute',top:-4,right:-6,background:'var(--red)',color:'#fff',borderRadius:'50%',width:16,height:16,fontSize:10,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>{n.badge}</span>}
+            </span>
+            <span>{n.l}</span>
+          </button>
+        ))}
+      </div>
+      {toastEl}
+    </div>
+  );
+}
+
+/* ── HOME PAGE ── */
+function HomePage({setTab}){
+  return(
+    <div>
+      <div className="loc-bar">
+        <span>📍</span>
+        <span>當前位置：台中市西屯區...</span>
+        <span className="arr">▼</span>
+      </div>
+      <div className="pad16">
+        <div className="search-box">
+          <span style={{color:'var(--muted)'}}>🔍</span>
+          <input placeholder="搜尋門市或商品"/>
+        </div>
+      </div>
+
+      {/* Banner */}
+      <div className="pad16">
+        <div className="banner" style={{background:'linear-gradient(135deg,#E87722,#C45E0A)',borderRadius:14,padding:20,color:'#fff',position:'relative',minHeight:120,overflow:'hidden'}}>
+          <div style={{display:'flex',gap:6,marginBottom:10}}>
+            <span style={{background:'rgba(255,255,255,.25)',padding:'2px 8px',borderRadius:10,fontSize:11,fontWeight:700}}>第一重</span>
+            <span style={{background:'rgba(255,255,255,.25)',padding:'2px 8px',borderRadius:10,fontSize:11,fontWeight:700}}>第二重</span>
+          </div>
+          <div style={{fontSize:11,opacity:.85,marginBottom:2}}>+1元升級美式(M)</div>
+          <div style={{fontSize:22,fontWeight:900,lineHeight:1.1,marginBottom:4}}>早餐派對<br/><span style={{fontSize:28}}>超值</span>更有感</div>
+          <div style={{fontSize:11,opacity:.85}}>咖啡飲品第二杯5折</div>
+          <div style={{position:'absolute',top:12,right:16,background:'rgba(255,255,255,.2)',borderRadius:10,padding:'8px 14px',textAlign:'center'}}>
+            <div style={{fontSize:11,opacity:.85}}>$</div>
+            <div style={{fontSize:32,fontWeight:900,lineHeight:1}}>70</div>
+            <div style={{fontSize:11,opacity:.85}}>起</div>
+          </div>
+        </div>
+      </div>
+
+      {/* 品牌介紹 */}
+      <div className="pad16" style={{marginTop:4}}>
+        <div className="section-title">品牌介紹</div>
+        <p style={{fontSize:13,lineHeight:1.8,color:'#444',marginBottom:20}}>
+          因一句「懂得喝義式咖啡才是行家」創辦人黃銘賢初嚐 Espresso，強烈風味震撼了味蕾，定下做杯好咖啡的決心。堅持手工烘豆、細細翻動、控制火侯，尋找甜蜜點讓咖啡豆完美釋放風味，歷經四年研發出經典配方，以義大利女神 Louisa 為名，守護讓所有咖啡愛好者喝杯好咖啡的信念，堅定對精品咖啡文化的熱情，並於 2006 年創立第一間門市。
+        </p>
+
+        <div className="section-title">附近推薦店家</div>
+        <div className="store-card" onClick={()=>setTab('menu')} style={{cursor:'pointer'}}>
+          <div className="store-img" style={{background:'#c8d8c0',fontSize:60,display:'flex',alignItems:'center',justifyContent:'center'}}>🏪</div>
+          <div className="store-info">
+            <div className="store-name">路易莎 逢甲大學店</div>
+            <div className="store-meta">⭐ 4.4 · 約 2.1 公里</div>
+          </div>
+        </div>
+      </div>
+
+      <button className="launch-btn" onClick={()=>setTab('menu')}>快速發起揪團</button>
+    </div>
+  );
+}
+
+/* ── MENU PAGE ── */
+function MenuPage({cart,setCart,showToast,searchQ}){
+  const[products,setProducts]=useState([]);
+  const[loading,setLoading]=useState(true);
+  const[cat,setCat]=useState('我的最愛');
+  const[custom,setCustom]=useState(null);
+  const[opts,setOpts]=useState({spec:'大熱',milk:'一般鮮奶',sugar:'無糖'});
+  const[favorites,setFavorites]=useState(()=>{
+    try{ return JSON.parse(localStorage.getItem('louisa_favs')||'[]'); }catch{ return []; }
+  });
+
+  useEffect(()=>{
+    db.from('products').select('*').eq('available',true).order('id')
+      .then(({data})=>{ setProducts(data||[]); setLoading(false); });
+  },[]);
+
+  // 搜尋優先：有 searchQ 就跨全部商品搜尋
+  const isSearching=searchQ&&searchQ.trim().length>0;
+
+  function toggleFav(p,e){
+    e.stopPropagation();
+    setFavorites(prev=>{
+      const isFav=prev.some(f=>f.id===p.id);
+      const next=isFav?prev.filter(f=>f.id!==p.id):[...prev,{id:p.id,name:p.name,price:p.price,category:p.category,image_url:p.image_url}];
+      try{ localStorage.setItem('louisa_favs',JSON.stringify(next)); }catch{}
+      showToast(isFav?'💔 已移除最愛':'❤️ 已加入最愛');
+      return next;
+    });
+  }
+
+  const cats=['我的最愛','全部','義式咖啡','茶飲','精品咖啡','輕食'];
+
+  // 篩選邏輯：搜尋模式下搜全部，否則依分類
+  const filtered=isSearching
+    ? products.filter(p=>p.name.includes(searchQ.trim()))
+    : cat==='我的最愛'?favorites
+    : cat==='全部'?products
+    : products.filter(p=>p.category===cat);
+
+  const FOOD_CATS=['輕食','甜點'];
+
+  function addToCart(){
+    const isFood=FOOD_CATS.includes(custom.category);
+    const extra=(!isFood&&opts.milk==='小農鮮奶')?10:0;
+    const item={id:Date.now(),pid:custom.id,name:custom.name,opts:isFood?{add:[]}:opts,price:custom.price+extra,qty:1,isFood,source:'customer'};
+    setCart(prev=>{
+      const ex=prev.find(i=>i.pid===item.pid&&JSON.stringify(i.opts)===JSON.stringify(item.opts));
+      if(ex) return prev.map(i=>i.id===ex.id?{...i,qty:i.qty+1}:i);
+      return [...prev,item];
+    });
+    showToast('✅ '+custom.name+' 已加入購物車');
+    setCustom(null);
+  }
+
+  const totalPrice=custom?(custom.price+(opts.milk==='小農鮮奶'?10:0)):0;
+
+  return(
+    <div>
+      {/* Category tabs — 搜尋中隱藏 */}
+      {!isSearching&&(
+        <div className="cat-bar">
+          {cats.map(c=>(
+            <div key={c} className={`cat-item${cat===c?' active':''}`} onClick={()=>setCat(c)}>
+              {c==='我的最愛'?'❤️ 我的最愛':c}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 搜尋結果標題 */}
+      {isSearching&&(
+        <div style={{padding:'10px 16px',fontSize:13,color:'var(--muted)'}}>
+          搜尋「<strong style={{color:'var(--org)'}}>{searchQ}</strong>」，找到 {filtered.length} 項商品
+        </div>
+      )}
+
+      {loading?<div className="loading"><div className="spin"/><span>載入中...</span></div>:
+        !isSearching&&cat==='我的最愛'&&filtered.length===0
+          ? <div style={{textAlign:'center',padding:'60px 20px',color:'#aaa'}}>
+              <div style={{fontSize:40,marginBottom:12}}>❤️</div>
+              <div style={{fontWeight:600,marginBottom:6}}>尚無最愛商品</div>
+              <div style={{fontSize:13}}>點擊商品右上角的 ♡ 加入最愛</div>
+            </div>
+          : isSearching&&filtered.length===0
+          ? <div style={{textAlign:'center',padding:'60px 20px',color:'#aaa'}}>
+              <div style={{fontSize:40,marginBottom:12}}>🔍</div>
+              <div style={{fontWeight:600}}>找不到「{searchQ}」相關商品</div>
+            </div>
+          : <div className="prod-grid">
+              {filtered.map(p=>{
+                const isFav=favorites.some(f=>f.id===p.id);
+                return(
+                  <div key={p.id} className="prod-card" style={{position:'relative'}} onClick={()=>{
+                    setCustom(p); setOpts({spec:'大熱',milk:'一般鮮奶',sugar:'無糖'});
+                  }}>
+                    <div onClick={e=>toggleFav(p,e)} style={{
+                      position:'absolute',top:8,right:8,zIndex:10,
+                      width:28,height:28,borderRadius:'50%',
+                      background:'rgba(255,255,255,.85)',
+                      display:'flex',alignItems:'center',justifyContent:'center',
+                      fontSize:16,cursor:'pointer',boxShadow:'0 1px 4px rgba(0,0,0,.15)'}}>
+                      {isFav?'❤️':'🤍'}
+                    </div>
+                    <img src={p.image_url||'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=200&q=80'} alt={p.name} onError={e=>e.target.src='https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=200&q=80'}/>
+                    <div className="prod-info">
+                      <div className="prod-name">{p.name}</div>
+                      <div className="prod-price">{"$"}{p.price} 起</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+      }
+
+      {/* Customize Modal */}
+      {custom&&(
+        <div className="modal-wrap" onClick={()=>setCustom(null)}>
+          <div className="modal-sheet" onClick={e=>e.stopPropagation()} style={{position:'relative'}}>
+            <button className="modal-close" onClick={()=>setCustom(null)}>✕</button>
+            <div className="modal-title">{custom.name}</div>
+            <div className="modal-meta">
+              熱量：290kcal | 糖：33g | 咖啡因：<span style={{color:'var(--red)'}}>● 紅</span>
+            </div>
+
+            {!FOOD_CATS.includes(custom.category)&&<>
+              <div className="modal-section">
+                <div className="modal-section-title">規格</div>
+                <div className="opt-chips">
+                  {[{l:`大熱 $${custom.price}`,v:'大熱'},{l:`大冰 $${custom.price}`,v:'大冰'}].map(o=>(
+                    <div key={o.v} className={`opt-chip${opts.spec===o.v?' sel':''}`} onClick={()=>setOpts(p=>({...p,spec:o.v}))}>{o.l}</div>
+                  ))}
+                </div>
+              </div>
+              <div className="modal-section">
+                <div className="modal-section-title">牛奶升級</div>
+                <div className="opt-chips">
+                  {[{l:'小農 +$10',v:'小農鮮奶'},{l:'一般鮮奶',v:'一般鮮奶'}].map(o=>(
+                    <div key={o.v} className={`opt-chip${opts.milk===o.v?' sel':''}`} onClick={()=>setOpts(p=>({...p,milk:o.v}))}>{o.l}</div>
+                  ))}
+                </div>
+              </div>
+              <div className="modal-section">
+                <div className="modal-section-title">甜度</div>
+                <div className="opt-chips">
+                  {['無糖','微糖','半糖'].map(v=>(
+                    <div key={v} className={`opt-chip${opts.sugar===v?' sel':''}`} onClick={()=>setOpts(p=>({...p,sugar:v}))}>{v}</div>
+                  ))}
+                </div>
+              </div>
+              <div className="modal-note">⚠️ 提醒：外送過程奶泡會自然消泡。</div>
+            </>}
+
+            <button className="add-cart-btn" onClick={addToCart}>
+              加入購物車 ${totalPrice}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── CART PAGE ── */
+function CartPage({cart,setCart,setTab,setConfirmOrder,showToast}){
+  const[pickup,setPickup]=useState('self');
+  const[pay,setPay]=useState('信用卡');
+  const[phone,setPhone]=useState('');
+  const[loading,setLoading]=useState(false);
+
+  // 產生可選時間清單：從現在起 +15分，每15分鐘一個選項，到晚上10點
+  function getTimeSlots(mode){
+    const slots=[];
+    const now=new Date();
+    const minMins=mode==='self'?15:40;
+    const start=new Date(now.getTime()+minMins*60000);
+    start.setMinutes(Math.ceil(start.getMinutes()/15)*15, 0, 0);
+    const end=new Date(); end.setHours(22,0,0,0);
+    let cur=new Date(start);
+    while(cur<=end){
+      slots.push(new Date(cur));
+      cur=new Date(cur.getTime()+15*60000);
+    }
+    return slots;
+  }
+
+  const slots=getTimeSlots(pickup);
+  const[pickupTime,setPickupTime]=useState(()=>getTimeSlots('self')[0]||new Date());
+
+  function switchPickup(mode){
+    setPickup(mode);
+    const newSlots=getTimeSlots(mode);
+    if(newSlots.length>0) setPickupTime(newSlots[0]);
+  }
+
+  const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  function updQty(id,d){
+    setCart(prev=>prev.map(i=>i.id===id?{...i,qty:Math.max(0,i.qty+d)}:i).filter(i=>i.qty>0));
+  }
+
+  async function checkout(){
+    if(cart.length===0) return;
+    setLoading(true);
+    const no='C'+(100+Math.floor(Math.random()*900));
+    const cleanPhone=(phone||'').trim();
+
+    // 寫入訂單
+    const{error}=await db.from('orders').insert([{
+      order_no:no,
+      member_phone:cleanPhone||null,
+      items:cart,
+      total,
+      payment_method:pay,
+      status:'paid',
+      pickup_time:pickupTime.toISOString(),
+    }]);
+    if(error){ showToast('❌ 下單失敗：'+error.message); setLoading(false); return; }
+
+    // 寫入或更新 CRM 顧客資料
+    if(cleanPhone){
+      const{data:existing,error:fetchErr}=await db.from('customers').select('*').eq('phone',cleanPhone).limit(1);
+      if(!fetchErr){
+        if(existing && existing.length>0){
+          const c=existing[0];
+          await db.from('customers').update({
+            total_orders:(c.total_orders||0)+1,
+            total_spent:(c.total_spent||0)+total,
+            last_order_at:new Date().toISOString(),
+          }).eq('phone',cleanPhone);
+        } else {
+          const{error:insErr}=await db.from('customers').insert([{
+            phone:cleanPhone,
+            name:'顧客',
+            total_orders:1,
+            total_spent:total,
+            last_order_at:new Date().toISOString(),
+          }]);
+          if(insErr) showToast('⚠️ 會員建立失敗：'+insErr.message);
+        }
+      }
+    }
+
+    setLoading(false);
+    setConfirmOrder({no,total,pickup_time:pickupTime.toISOString(),pickup,pay,items:cart,phone:cleanPhone});
+    setCart([]);
+    setPhone('');
+    setTab('confirm');
+  }
+
+  if(cart.length===0) return(
+    <div className="cart-page" style={{paddingTop:20}}>
+      <div className="empty-cart">
+        <div className="ei">🛒</div>
+        <div style={{fontWeight:600,marginBottom:8}}>購物車是空的</div>
+        <div style={{fontSize:13,color:'var(--muted)'}}>去點購頁選你喜歡的飲品吧！</div>
+      </div>
+    </div>
+  );
+
+  return(
+    <div className="cart-page" style={{paddingTop:16}}>
+      {/* Items */}
+      <div className="cart-section">
+        {cart.map(item=>(
+          <div key={item.id}>
+            <div className="cart-row">
+              <div style={{flex:1}}>
+                <div className="cart-item-name">{item.name} x {item.qty}</div>
+                <div className="cart-promo">✨ 黑卡優惠：第二杯半價</div>
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:10}}>
+                <div style={{display:'flex',alignItems:'center',gap:6}}>
+                  <button onClick={()=>updQty(item.id,-1)} style={{width:24,height:24,border:'1px solid var(--border)',borderRadius:4,background:'#fff',cursor:'pointer',fontSize:16,display:'flex',alignItems:'center',justifyContent:'center'}}>−</button>
+                  <span style={{fontSize:14,fontWeight:600,minWidth:16,textAlign:'center'}}>{item.qty}</span>
+                  <button onClick={()=>updQty(item.id,1)} style={{width:24,height:24,border:'1px solid var(--border)',borderRadius:4,background:'#fff',cursor:'pointer',fontSize:16,display:'flex',alignItems:'center',justifyContent:'center'}}>+</button>
+                </div>
+                <div className="cart-price">${item.price*item.qty}</div>
+              </div>
+            </div>
+            <div className="divider"/>
+          </div>
+        ))}
+        <div className="cart-total-row">
+          <div className="cart-total-label">總金額</div>
+          <div className="cart-total-price">${total}</div>
+        </div>
+      </div>
+
+      {/* Pickup */}
+      <div className="cart-section">
+        <div className="pickup-toggle" style={{marginBottom:16}}>
+          <button className={`pickup-btn${pickup==='self'?' active':''}`} onClick={()=>switchPickup('self')}>自取</button>
+          <button className={`pickup-btn${pickup==='delivery'?' active':''}`} onClick={()=>switchPickup('delivery')}>外送</button>
+        </div>
+
+        {/* 取餐時間選擇 */}
+        <div style={{marginBottom:16}}>
+          <div className="pay-section-title" style={{marginBottom:10}}>
+            {pickup==='self'?'🕐 選擇取餐時間':'🛵 選擇外送時間'}
+            <span style={{fontSize:12,color:'var(--muted)',fontWeight:400,marginLeft:6}}>
+              （最早 {pickup==='self'?'15':'40'} 分鐘後）
+            </span>
+          </div>
+          {slots.length===0
+            ? <div style={{fontSize:13,color:'var(--muted)'}}>今日已無可選時段</div>
+            : <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                {slots.map((s,i)=>{
+                  const label=s.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+                  const sel=pickupTime&&s.getTime()===pickupTime.getTime();
+                  return(
+                    <div key={i} onClick={()=>setPickupTime(s)}
+                      style={{padding:'10px 16px',border:`1.5px solid ${sel?'var(--org)':'var(--border)'}`,borderRadius:8,
+                        fontSize:15,fontWeight:sel?700:400,color:sel?'var(--org)':'var(--text)',
+                        background:sel?'var(--org-light)':'#fff',cursor:'pointer',transition:'all .12s'}}>
+                      {label}
+                    </div>
+                  );
+                })}
+              </div>
+          }
+          {pickupTime&&<div style={{marginTop:10,fontSize:13,color:'var(--muted)'}}>
+            已選：<strong style={{color:'var(--org)'}}>{pickupTime.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}</strong>
+          </div>}
+        </div>
+
+        <div className="pay-section-title">支付方式</div>
+        <div className="pay-chips">
+          {['LINE Pay','信用卡'].map(m=>(
+            <div key={m} className={`pay-chip${pay===m?' sel':''}`} onClick={()=>setPay(m)}>{m}</div>
+          ))}
+        </div>
+      </div>
+
+      {/* 會員電話 */}
+      <div className="cart-section">
+        <div className="pay-section-title" style={{marginBottom:6}}>👤 會員電話（選填）</div>
+        <div style={{fontSize:12,color:'var(--muted)',marginBottom:10}}>填入電話可累積消費紀錄，享會員優惠</div>
+        <div style={{display:'flex',gap:8,alignItems:'center'}}>
+          <input
+            value={phone} onChange={e=>setPhone(e.target.value)}
+            placeholder="輸入手機號碼"
+            style={{flex:1,border:'1.5px solid var(--border)',borderRadius:8,padding:'10px 14px',fontSize:14,fontFamily:'inherit',outline:'none'}}
+            onFocus={e=>e.target.style.borderColor='var(--org)'}
+            onBlur={e=>e.target.style.borderColor='var(--border)'}
+          />
+        </div>
+      </div>
+
+      <button className="checkout-btn" onClick={checkout} disabled={loading||!pickupTime}>
+        {loading?'處理中...':'立即結帳'}
+      </button>
+    </div>
+  );
+}
+
+/* ── CONFIRM PAGE ── */
+function ConfirmPage({order,setTab}){
+  if(!order) return null;
+  const pickup=new Date(order.pickup_time);
+  const timeStr=pickup.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+  const orderNum=order.no.replace('C','');
+
+  return(
+    <div className="confirm-page" style={{paddingTop:16}}>
+      {/* Items summary */}
+      <div className="cart-section">
+        {(order.items||[]).map((item,i)=>(
+          <div key={i}>
+            <div className="cart-row">
+              <div className="cart-item-name">{item.name} x {item.qty}</div>
+              <div className="cart-price">${item.price*item.qty}</div>
+            </div>
+            <div className="cart-promo">✨ 黑卡優惠：第二杯半價</div>
+            <div className="divider"/>
+          </div>
+        ))}
+        <div className="cart-total-row">
+          <div className="cart-total-label">總金額</div>
+          <div className="cart-total-price">${order.total}</div>
+        </div>
+      </div>
+
+      {/* Order number */}
+      <div className="confirm-block">
+        <div className="confirm-block-title">訂單編號</div>
+        <div className="confirm-block-val">{orderNum}</div>
+      </div>
+
+      {/* Pickup time */}
+      <div className="confirm-block">
+        <div className="confirm-block-title">取餐時間</div>
+        <div className="confirm-block-time">{timeStr}</div>
+      </div>
+
+      <button style={{width:'100%',padding:16,background:'#f5f5f5',border:'none',borderRadius:12,fontSize:15,fontFamily:'inherit',fontWeight:600,cursor:'pointer',marginTop:4}} onClick={()=>setTab('home')}>
+        回首頁
+      </button>
+    </div>
+  );
+}
+
+
+/* ── MY PAGE ── */
+function MyPage(){
+  const[phone,setPhone]=useState('');
+  const[inputPhone,setInputPhone]=useState('');
+  const[customer,setCustomer]=useState(null);
+  const[orders,setOrders]=useState([]);
+  const[loading,setLoading]=useState(false);
+  const[subPage,setSubPage]=useState('main');
+  const[editForm,setEditForm]=useState({name:'',gender:'-',phone:''});
+  const[saving,setSaving]=useState(false);
+  const[msg,setMsg]=useState('');
+
+  async function login(){
+    if(!inputPhone.trim()) return;
+    setLoading(true); setMsg('');
+    const{data,error}=await db.from('customers').select('*').eq('phone',inputPhone.trim()).limit(1);
+    if(error||!data||data.length===0){ setMsg('❌ 找不到此電話的會員資料'); setLoading(false); return; }
+    const c=data[0];
+    setCustomer(c); setPhone(inputPhone.trim());
+    setEditForm({name:c.name||'',gender:c.gender||'-',phone:inputPhone.trim()});
+    const{data:od}=await db.from('orders').select('*').eq('member_phone',inputPhone.trim()).order('created_at',{ascending:false}).limit(20);
+    setOrders(od||[]);
+    setLoading(false);
+  }
+
+  async function saveEdit(){
+    setSaving(true);
+    await db.from('customers').update({name:editForm.name,gender:editForm.gender}).eq('phone',phone);
+    setCustomer(c=>({...c,name:editForm.name,gender:editForm.gender}));
+    setSaving(false); setSubPage('main');
+  }
+
+  function getLevel(spent){
+    if(spent>=5000) return{l:'黑卡',c:'#fff',bg:'linear-gradient(135deg,#1a1a1a,#444)',off:'3% OFF'};
+    if(spent>=2000) return{l:'金卡',c:'#7a5500',bg:'linear-gradient(135deg,#f9d423,#e3a000)',off:'2% OFF'};
+    if(spent>=500)  return{l:'銀卡',c:'#445',bg:'linear-gradient(135deg,#bdc3c7,#909ca5)',off:'1% OFF'};
+    return{l:'一般會員',c:'#555',bg:'linear-gradient(135deg,#e0e0e0,#bdbdbd)',off:''};
+  }
+
+  function BackHeader({title}){
+    return(
+      <div style={{display:'flex',alignItems:'center',gap:8,padding:'12px 0 20px',background:'#fff',position:'sticky',top:52,zIndex:10,marginBottom:4}}>
+        <button onClick={()=>setSubPage('main')} style={{background:'none',border:'none',fontSize:22,cursor:'pointer',padding:'0 8px'}}>←</button>
+        <span style={{fontWeight:700,fontSize:16}}>{title}</span>
+      </div>
+    );
+  }
+
+  // ── 未登入 ──
+  if(!customer) return(
+    <div className="my-page">
+      <div style={{textAlign:'center',marginBottom:24}}>
+        <div style={{width:72,height:72,borderRadius:'50%',background:'#e0e0e0',display:'flex',alignItems:'center',justifyContent:'center',fontSize:32,margin:'0 auto 12px'}}>👤</div>
+        <div style={{fontWeight:700,fontSize:18,marginBottom:4}}>LOUISA COFFEE</div>
+        <div style={{fontSize:13,color:'#888'}}>輸入手機號碼查詢會員資料</div>
+      </div>
+      <div style={{background:'#fff',borderRadius:12,padding:16,marginBottom:12}}>
+        <div style={{fontSize:13,color:'#888',marginBottom:8}}>手機號碼</div>
+        <input value={inputPhone} onChange={e=>setInputPhone(e.target.value)}
+          placeholder="例：0912345678"
+          style={{width:'100%',border:'1.5px solid #e0e0e0',borderRadius:8,padding:'12px 14px',fontSize:16,fontFamily:'inherit',outline:'none',marginBottom:12}}
+          onKeyDown={e=>e.key==='Enter'&&login()}/>
+        {msg&&<div style={{color:'#e53935',fontSize:13,marginBottom:8}}>{msg}</div>}
+        <button onClick={login} disabled={loading}
+          style={{width:'100%',padding:14,background:'var(--org)',color:'#fff',border:'none',borderRadius:10,fontSize:16,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
+          {loading?'查詢中...':'登入'}
+        </button>
+      </div>
+      <div style={{fontSize:12,color:'#aaa',textAlign:'center'}}>點餐結帳時填入電話即可成為會員</div>
+    </div>
+  );
+
+  const lv=getLevel(customer.total_spent||0);
+
+  // ── 個人檔案 ──
+  if(subPage==='profile') return(
+    <div className="my-page" style={{paddingTop:0}}>
+      <BackHeader title="個人檔案"/>
+      <div style={{background:'#fff',borderRadius:12,padding:20,marginBottom:12}}>
+        <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:20,paddingBottom:16,borderBottom:'1px solid #f0f0f0'}}>
+          <div style={{width:64,height:64,borderRadius:'50%',background:'var(--org)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,color:'#fff',fontWeight:700}}>
+            {(customer.name||'顧')[0]}
+          </div>
+          <div>
+            <div style={{fontWeight:700,fontSize:18}}>{customer.name||'顧客'}</div>
+            <div style={{fontSize:13,color:'#888',marginTop:2}}>{phone}</div>
+          </div>
+        </div>
+        {[{l:'姓名',k:'name',editable:true},{l:'性別',k:'gender',editable:true,opts:['男','女','-']},{l:'手機號碼',k:'phone',editable:false}].map(f=>(
+          <div key={f.k} style={{marginBottom:16}}>
+            <div style={{fontSize:13,color:'#888',marginBottom:6}}>{f.l}</div>
+            {f.editable&&!f.opts&&<input value={editForm[f.k]||''} onChange={e=>setEditForm(fm=>({...fm,[f.k]:e.target.value}))}
+              style={{width:'100%',border:'1.5px solid #e0e0e0',borderRadius:8,padding:'10px 14px',fontSize:15,fontFamily:'inherit',outline:'none'}}/>}
+            {f.editable&&f.opts&&<div style={{display:'flex',gap:8}}>
+              {f.opts.map(o=><button key={o} onClick={()=>setEditForm(fm=>({...fm,[f.k]:o}))}
+                style={{padding:'8px 20px',border:`1.5px solid ${editForm[f.k]===o?'var(--org)':'#e0e0e0'}`,borderRadius:8,background:'#fff',color:editForm[f.k]===o?'var(--org)':'#555',fontFamily:'inherit',fontSize:14,cursor:'pointer',fontWeight:editForm[f.k]===o?700:400}}>{o}</button>)}
+            </div>}
+            {!f.editable&&<div style={{padding:'10px 14px',background:'#f5f5f5',borderRadius:8,fontSize:15,color:'#888'}}>{phone}</div>}
+          </div>
+        ))}
+        <button onClick={saveEdit} disabled={saving}
+          style={{width:'100%',padding:14,background:'var(--org)',color:'#fff',border:'none',borderRadius:10,fontSize:15,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
+          {saving?'儲存中...':'儲存變更'}
+        </button>
+      </div>
+    </div>
+  );
+
+  // ── 帳號管理 ──
+  if(subPage==='account') return(
+    <div className="my-page" style={{paddingTop:0}}>
+      <BackHeader title="帳號管理"/>
+      <div style={{background:'#fff',borderRadius:12,overflow:'hidden',marginBottom:12}}>
+        {[{l:'更改密碼',i:'🔒'},{l:'通知設定',i:'🔔'},{l:'隱私設定',i:'🛡️'}].map((item,idx,arr)=>(
+          <div key={item.l} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',borderBottom:idx<arr.length-1?'1px solid #f5f5f5':'none',cursor:'pointer'}}>
+            <div style={{display:'flex',alignItems:'center',gap:12}}><span style={{fontSize:18}}>{item.i}</span><span style={{fontSize:15}}>{item.l}</span></div>
+            <span style={{color:'#aaa',fontSize:18}}>›</span>
+          </div>
+        ))}
+      </div>
+      <div style={{background:'#fff',borderRadius:12,overflow:'hidden'}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',cursor:'pointer',color:'#e53935'}}
+          onClick={()=>{setCustomer(null);setPhone('');setInputPhone('');setOrders([]);setSubPage('main');}}>
+          <div style={{display:'flex',alignItems:'center',gap:12}}><span style={{fontSize:18}}>🗑️</span><span style={{fontSize:15}}>刪除帳號</span></div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ── 曾點過 ──
+  if(subPage==='history') return(
+    <div className="my-page" style={{paddingTop:0}}>
+      <BackHeader title="曾點過"/>
+      {orders.length===0
+        ? <div style={{textAlign:'center',color:'#aaa',padding:'40px 0'}}>尚無訂單紀錄</div>
+        : orders.map(o=>{
+            const items=(o.items||[]).map(i=>i.name+'×'+(i.qty||1)).join('、');
+            const t=new Date(o.created_at).toLocaleDateString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+            const statusMap={paid:'製作中',done:'已完成',unpaid:'待付款'};
+            return(
+              <div key={o.id} style={{background:'#fff',borderRadius:12,padding:16,marginBottom:10}}>
+                <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
+                  <span style={{fontWeight:700,color:'var(--org)'}}>{o.order_no}</span>
+                  <span style={{fontSize:12,color:'#888'}}>{t}</span>
+                </div>
+                <div style={{fontSize:13,color:'#555',marginBottom:8,lineHeight:1.6}}>{items}</div>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <span style={{fontSize:12,padding:'3px 10px',background:'#f0f0f0',borderRadius:10,color:'#666'}}>{statusMap[o.status]||o.status}</span>
+                  <span style={{fontWeight:700,fontSize:16,color:'var(--org)'}}>${o.total}</span>
+                </div>
+              </div>
+            );
+          })
+      }
+    </div>
+  );
+
+  // ── 最愛店家 ──
+  if(subPage==='favorites') return(
+    <div className="my-page" style={{paddingTop:0}}>
+      <BackHeader title="最愛店家"/>
+      <div style={{background:'#fff',borderRadius:12,padding:16,display:'flex',alignItems:'center',gap:14}}>
+        <div style={{width:56,height:56,borderRadius:10,background:'var(--org)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24}}>☕</div>
+        <div style={{flex:1}}>
+          <div style={{fontWeight:700,fontSize:15}}>路易莎 逢甲大學店</div>
+          <div style={{fontSize:12,color:'#888',marginTop:2}}>⭐ 4.4 · 台中市西屯區</div>
+        </div>
+        <span style={{color:'var(--org)',fontSize:22}}>♥</span>
+      </div>
+    </div>
+  );
+
+  // ── 優惠券 ──
+  if(subPage==='coupons') return(
+    <div className="my-page" style={{paddingTop:0}}>
+      <BackHeader title="優惠券"/>
+      <div style={{background:'#fff',borderRadius:12,padding:20,marginBottom:10,border:'1.5px solid var(--org)'}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
+          <span style={{fontWeight:700,fontSize:15}}>咖啡第二杯 85 折</span>
+          <span style={{background:'var(--org)',color:'#fff',padding:'4px 12px',borderRadius:10,fontSize:12,cursor:'pointer'}}>使用</span>
+        </div>
+        <div style={{fontSize:12,color:'#888'}}>黑卡會員專屬 · 有效期至 2026/12/31</div>
+      </div>
+      <div style={{background:'#f5f5f5',borderRadius:12,padding:20,opacity:.6}}>
+        <div style={{fontWeight:700,fontSize:15,marginBottom:4}}>環保杯折 $5</div>
+        <div style={{fontSize:12,color:'#888'}}>已使用</div>
+      </div>
+    </div>
+  );
+
+  // ── 會員卡 ──
+  if(subPage==='membercard') return(
+    <div className="my-page" style={{paddingTop:0}}>
+      <BackHeader title="會員卡"/>
+      <div style={{background:lv.bg,borderRadius:16,padding:24,marginBottom:16,color:lv.c}}>
+        <div style={{fontSize:12,opacity:.8,marginBottom:6}}>LOUISA {lv.l.toUpperCase()} MEMBER</div>
+        <div style={{fontSize:22,fontWeight:700,marginBottom:4}}>{customer.name||'顧客'}</div>
+        <div style={{fontSize:13,opacity:.7,marginBottom:20}}>{phone}</div>
+        <div style={{display:'flex',justifyContent:'space-between'}}>
+          <div><div style={{fontSize:28,fontWeight:900}}>{(customer.total_spent||0).toLocaleString()}</div><div style={{fontSize:11,opacity:.7}}>累積消費 (元)</div></div>
+          <div style={{textAlign:'right'}}><div style={{fontSize:22,fontWeight:700}}>{customer.total_orders||0}</div><div style={{fontSize:11,opacity:.7}}>消費次數</div></div>
+        </div>
+      </div>
+      <div style={{background:'#fff',borderRadius:12,padding:16,fontSize:13,lineHeight:1.8}}>
+        <div style={{fontWeight:700,marginBottom:8}}>等級說明</div>
+        {[{l:'一般會員',d:'累積消費 $0 起'},{l:'銀卡',d:'累積消費 $500 起，享 1% OFF'},{l:'金卡',d:'累積消費 $2,000 起，享 2% OFF'},{l:'黑卡',d:'累積消費 $5,000 起，享 3% OFF'}].map(g=>(
+          <div key={g.l} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid #f5f5f5'}}>
+            <span style={{fontWeight:600}}>{g.l}</span><span style={{color:'#888',fontSize:12}}>{g.d}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  // ── 我的載具 ──
+  if(subPage==='invoice') return(
+    <div className="my-page" style={{paddingTop:0}}>
+      <BackHeader title="我的載具"/>
+      <div style={{background:'#fff',borderRadius:12,padding:16,marginBottom:12}}>
+        <div style={{fontSize:13,color:'#888',marginBottom:8}}>手機條碼載具</div>
+        <div style={{padding:'10px 14px',background:'#f5f5f5',borderRadius:8,fontSize:15,fontFamily:'monospace'}}>/ABC-1234</div>
+      </div>
+      <button style={{width:'100%',padding:14,background:'var(--org)',color:'#fff',border:'none',borderRadius:12,fontSize:15,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
+        更新載具條碼
+      </button>
+    </div>
+  );
+
+  // ── 常用地址 ──
+  if(subPage==='address') return(
+    <div className="my-page" style={{paddingTop:0}}>
+      <BackHeader title="常用地址"/>
+      <div style={{background:'#fff',borderRadius:12,padding:16,marginBottom:10,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <div><div style={{fontWeight:600,marginBottom:4}}>🏠 家</div><div style={{fontSize:13,color:'#888'}}>台中市西屯區逢甲路168號</div></div>
+        <button style={{background:'none',border:'none',color:'var(--org)',fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>編輯</button>
+      </div>
+      <button style={{width:'100%',padding:14,background:'var(--org)',color:'#fff',border:'none',borderRadius:12,fontSize:15,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
+        ＋ 新增地址
+      </button>
+    </div>
+  );
+
+  // ── 付款方式 ──
+  if(subPage==='payment') return(
+    <div className="my-page" style={{paddingTop:0}}>
+      <BackHeader title="付款方式"/>
+      {['LINE Pay','信用卡 ****-1234'].map((m,i)=>(
+        <div key={i} style={{background:'#fff',borderRadius:12,padding:16,marginBottom:10,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <span style={{fontSize:15,fontWeight:500}}>{m}</span>
+          <span style={{color:'#aaa',fontSize:18}}>›</span>
+        </div>
+      ))}
+      <button style={{width:'100%',padding:14,background:'var(--org)',color:'#fff',border:'none',borderRadius:12,fontSize:15,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
+        ＋ 新增付款方式
+      </button>
+    </div>
+  );
+
+  // ── 兌換專區 ──
+  if(subPage==='redeem') return(
+    <div className="my-page" style={{paddingTop:0}}>
+      <BackHeader title="兌換專區"/>
+      <div style={{background:'var(--org)',borderRadius:12,padding:20,color:'#fff',marginBottom:16,textAlign:'center'}}>
+        <div style={{fontSize:13,opacity:.85,marginBottom:4}}>累積點數</div>
+        <div style={{fontSize:48,fontWeight:900,lineHeight:1}}>{(customer.total_spent||0)}</div>
+        <div style={{fontSize:12,opacity:.75,marginTop:4}}>每消費 $1 = 1 點</div>
+      </div>
+      {[{l:'免費中杯飲品',pts:200},{l:'升級大杯',pts:50},{l:'免費輕食',pts:300}].map(item=>(
+        <div key={item.l} style={{background:'#fff',borderRadius:12,padding:16,marginBottom:10,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <div><div style={{fontWeight:600,fontSize:15}}>{item.l}</div><div style={{fontSize:12,color:'#888',marginTop:2}}>{item.pts} 點兌換</div></div>
+          <button style={{padding:'8px 16px',background:(customer.total_spent||0)>=item.pts?'var(--org)':'#e0e0e0',color:(customer.total_spent||0)>=item.pts?'#fff':'#aaa',border:'none',borderRadius:8,fontSize:13,fontFamily:'inherit',fontWeight:600,cursor:'pointer'}}>
+            兌換
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+
+  // ── 設定 ──
+  if(subPage==='settings') return(
+    <div className="my-page" style={{paddingTop:0}}>
+      <BackHeader title="設定"/>
+      <div style={{background:'#fff',borderRadius:12,overflow:'hidden'}}>
+        {[{l:'語言',v:'繁體中文'},{l:'推播通知',v:'開啟'},{l:'深色模式',v:'關閉'},{l:'清除快取',v:''}].map((item,idx,arr)=>(
+          <div key={item.l} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',borderBottom:idx<arr.length-1?'1px solid #f5f5f5':'none',cursor:'pointer'}}>
+            <span style={{fontSize:15}}>{item.l}</span>
+            <span style={{fontSize:14,color:'#888'}}>{item.v} {item.v&&'›'}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  // ── 意見回饋 ──
+  if(subPage==='feedback') return(
+    <div className="my-page" style={{paddingTop:0}}>
+      <BackHeader title="意見回饋"/>
+      <div style={{background:'#fff',borderRadius:12,padding:20}}>
+        <div style={{fontSize:13,color:'#888',marginBottom:8}}>您的意見</div>
+        <textarea placeholder="請輸入您的意見或建議..." rows={5}
+          style={{width:'100%',border:'1.5px solid #e0e0e0',borderRadius:8,padding:12,fontSize:14,fontFamily:'inherit',outline:'none',resize:'none',marginBottom:12}}/>
+        <button style={{width:'100%',padding:14,background:'var(--org)',color:'#fff',border:'none',borderRadius:10,fontSize:15,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}
+          onClick={()=>{setSubPage('main');}}>
+          送出意見
+        </button>
+      </div>
+    </div>
+  );
+
+  // ── 常見問題 ──
+  if(subPage==='faq') return(
+    <div className="my-page" style={{paddingTop:0}}>
+      <BackHeader title="常見問題"/>
+      {[{q:'如何累積點數？',a:'每消費 $1 即可累積 1 點，點數可用於兌換飲品或升級。'},
+        {q:'如何成為黑卡會員？',a:'累積消費滿 $5,000 即自動升級為黑卡會員，享有 3% 折扣優惠。'},
+        {q:'訂單可以取消嗎？',a:'訂單送出後無法取消，如有問題請聯繫門市人員。'},
+        {q:'外送範圍是哪裡？',a:'目前外送範圍為門市 3 公里以內。'}].map((item,i)=>(
+        <div key={i} style={{background:'#fff',borderRadius:12,padding:16,marginBottom:10}}>
+          <div style={{fontWeight:600,marginBottom:6,color:'var(--org)'}}>Q. {item.q}</div>
+          <div style={{fontSize:13,color:'#555',lineHeight:1.6}}>A. {item.a}</div>
+        </div>
+      ))}
+    </div>
+  );
+
+  // ── 主頁 ──
+  return(
+    <div className="my-page" style={{paddingTop:0,paddingBottom:20,background:'#f5f5f5',minHeight:'100vh'}}>
+      {/* 頂部 header */}
+      <div style={{background:'#fff',padding:'12px 20px 14px',marginBottom:8}}>
+        <div style={{fontSize:14,fontWeight:700,textAlign:'center',marginBottom:12,letterSpacing:1}}>LOUISA COFFEE</div>
+        <div style={{display:'flex',alignItems:'center',gap:14}}>
+          <div style={{width:52,height:52,borderRadius:'50%',background:'var(--org)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,color:'#fff',fontWeight:700}}>
+            {(customer.name||'顧')[0]}
+          </div>
+          <div style={{flex:1}}>
+            <div style={{fontWeight:700,fontSize:17}}>{customer.name||'顧客'}</div>
+            <div style={{fontSize:12,color:'#888',marginTop:2}}>{phone}</div>
+          </div>
+          <div style={{position:'relative',cursor:'pointer'}}>
+            <span style={{fontSize:24}}>🔔</span>
+            {(customer.total_orders||0)>0&&<span style={{position:'absolute',top:-4,right:-4,background:'var(--red)',color:'#fff',borderRadius:'50%',width:18,height:18,fontSize:11,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>{customer.total_orders||0}</span>}
+          </div>
+        </div>
+      </div>
+
+      {/* 第一組 */}
+      <div style={{background:'#fff',borderRadius:0,marginBottom:8,overflow:'hidden'}}>
+        {[
+          {l:'個人檔案',i:'👤',sub:'profile'},
+          {l:'帳號管理',i:'⚙️',sub:'account'},
+          {l:'曾點過',i:'🧾',sub:'history'},
+          {l:'最愛店家',i:'♥',sub:'favorites'},
+          {l:'優惠券',i:'🎫',sub:'coupons'},
+          {l:'會員卡',i:'💳',sub:'membercard'},
+          {l:'常用地址',i:'📍',sub:'address'},
+          {l:'我的載具',i:'🧾',sub:'invoice'},
+          {l:'付款方式',i:'💰',sub:'payment'},
+        ].map((item,idx,arr)=>(
+          <div key={item.l} onClick={()=>setSubPage(item.sub)}
+            style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'15px 20px',borderBottom:idx<arr.length-1?'1px solid #f5f5f5':'none',cursor:'pointer',background:'#fff'}}>
+            <div style={{display:'flex',alignItems:'center',gap:14}}>
+              <span style={{fontSize:18,width:24,textAlign:'center',color:'#555'}}>{item.i}</span>
+              <span style={{fontSize:15,color:'#1a1a1a'}}>{item.l}</span>
+            </div>
+            <span style={{color:'#ccc',fontSize:18}}>›</span>
+          </div>
+        ))}
+      </div>
+
+      {/* 第二組 */}
+      <div style={{background:'#fff',marginBottom:8,overflow:'hidden'}}>
+        {[
+          {l:'兌換專區',i:'🎁',sub:'redeem'},
+          {l:'設定',i:'⚙️',sub:'settings'},
+          {l:'意見回饋',i:'💬',sub:'feedback'},
+          {l:'常見問題',i:'❓',sub:'faq'},
+        ].map((item,idx,arr)=>(
+          <div key={item.l} onClick={()=>setSubPage(item.sub)}
+            style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'15px 20px',borderBottom:idx<arr.length-1?'1px solid #f5f5f5':'none',cursor:'pointer',background:'#fff'}}>
+            <div style={{display:'flex',alignItems:'center',gap:14}}>
+              <span style={{fontSize:18,width:24,textAlign:'center',color:'#555'}}>{item.i}</span>
+              <span style={{fontSize:15,color:'#1a1a1a'}}>{item.l}</span>
+            </div>
+            <span style={{color:'#ccc',fontSize:18}}>›</span>
+          </div>
+        ))}
+      </div>
+
+      <button onClick={()=>{setCustomer(null);setPhone('');setInputPhone('');setOrders([]);setSubPage('main');}}
+        style={{width:'calc(100% - 32px)',margin:'0 16px',padding:14,background:'#fff',border:'1px solid #e0e0e0',borderRadius:12,fontSize:14,fontFamily:'inherit',fontWeight:600,cursor:'pointer',color:'#888'}}>
+        登出
+      </button>
+    </div>
+  );
+}
+ReactDOM.render(<App/>,document.getElementById('root'));
+</script>
+</body>
+</html>
