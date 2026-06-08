@@ -148,6 +148,166 @@ function useToast(){
   return[setT, t?<div className="toast">{t}</div>:null];
 }
 
+/* ── GROUP BOTTOM BAR ── */
+function GroupBottomBar({groupRoom,setTab,showToast,cart,myName,setGroupRoom,setConfirmOrder,setCart}){
+  const[groupItems,setGroupItems]=useState([]);
+  const[expanded,setExpanded]=useState(false);
+  const[checkingOut,setCheckingOut]=useState(false);
+
+  useEffect(()=>{
+    async function load(){
+      const{data}=await db.from('group_items').select('*').eq('room_code',groupRoom.room_code).order('created_at');
+      setGroupItems((data||[]).filter(m=>(m.items||[]).length>0));
+    }
+    load();
+    const t=setInterval(load,6000);
+    return()=>clearInterval(t);
+  },[groupRoom.room_code]);
+
+  const totalAll=groupItems.reduce((s,m)=>s+(m.subtotal||0),0);
+  const memberCount=groupItems.length;
+
+  async function doGroupCheckout(){
+    setCheckingOut(true);
+    const allItems=[];
+    groupItems.forEach(m=>(m.items||[]).forEach(i=>allItems.push({...i,member:m.member_name})));
+    const no='GP-'+(1000+Math.floor(Math.random()*9000));
+    const pickup_time=new Date(Date.now()+15*60000).toISOString();
+    const{error}=await db.from('orders').insert([{
+      order_no:no, items:allItems, total:totalAll,
+      payment_method:'揪團結帳', status:'paid', pickup_time,
+    }]);
+    await db.from('group_orders').update({status:'closed'}).eq('room_code',groupRoom.room_code);
+    setCheckingOut(false);
+    if(!error){
+      setConfirmOrder({no,total:totalAll,pickup_time,pickup:'self',pay:'揪團',items:allItems,isGroup:true,groupItems});
+      setCart([]); setGroupRoom(null); setTab('confirm');
+    } else { showToast('❌ 結帳失敗：'+error.message); }
+  }
+
+  return(
+    <>
+      {/* 展開的成員清單 overlay */}
+      {expanded&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.45)',zIndex:200,display:'flex',flexDirection:'column',justifyContent:'flex-end'}}
+          onClick={()=>setExpanded(false)}>
+          <div onClick={e=>e.stopPropagation()} style={{background:'#fff',borderRadius:'20px 20px 0 0',maxHeight:'75vh',overflow:'hidden',display:'flex',flexDirection:'column'}}>
+            {/* 標題 */}
+            <div style={{padding:'16px 20px',borderBottom:'1px solid #f0f0f0',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
+              <div style={{fontWeight:700,fontSize:16}}>購物內容</div>
+              <button onClick={()=>setExpanded(false)} style={{background:'none',border:'none',fontSize:20,cursor:'pointer',color:'#aaa'}}>✕</button>
+            </div>
+            {/* 成員列表 */}
+            <div style={{overflowY:'auto',flex:1,padding:'8px 0 120px'}}>
+              {memberCount===0
+                ? <div style={{textAlign:'center',padding:'40px 20px',color:'#aaa',fontSize:14}}>還沒有人點餐</div>
+                : <MemberOrderList groupItems={groupItems} showToast={showToast} groupRoom={groupRoom} onRefresh={async()=>{
+                    const{data}=await db.from('group_items').select('*').eq('room_code',groupRoom.room_code).order('created_at');
+                    setGroupItems((data||[]).filter(m=>(m.items||[]).length>0));
+                  }}/>
+              }
+            </div>
+            {/* 底部金額+結帳 */}
+            <div style={{position:'absolute',bottom:0,left:0,right:0,background:'#fff',borderTop:'1px solid #f0f0f0',padding:'12px 20px 24px'}}>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:10,fontWeight:700,fontSize:16}}>
+                <span>團購總金額</span>
+                <span style={{color:'var(--org)'}}>NT$ {totalAll}</span>
+              </div>
+              {groupRoom.isCreator
+                ? <button onClick={doGroupCheckout} disabled={checkingOut||groupItems.length===0}
+                    style={{width:'100%',padding:14,background:groupItems.length===0?'#ccc':'var(--org)',color:'#fff',border:'none',borderRadius:12,fontSize:16,fontFamily:'inherit',fontWeight:700,cursor:groupItems.length===0?'not-allowed':'pointer'}}>
+                    {checkingOut?'結帳中...':'一般商品結帳 →'}
+                  </button>
+                : <div style={{textAlign:'center',padding:'10px',background:'#f5f5f5',borderRadius:10,fontSize:13,color:'var(--muted)'}}>
+                    等待主揪 {groupRoom.creator_name} 確認後結帳
+                  </div>
+              }
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 底部固定條 */}
+      <div style={{position:'fixed',bottom:64,left:'50%',transform:'translateX(-50%)',width:'100%',maxWidth:420,background:'#fff',borderTop:'2px solid var(--org)',padding:'10px 16px',zIndex:99,boxShadow:'0 -2px 12px rgba(0,0,0,.08)'}}>
+        {groupRoom.isCreator
+          ? <div style={{display:'flex',gap:8}}>
+              <button onClick={()=>setExpanded(true)}
+                style={{flex:1,padding:'10px 8px',background:'#f5f5f5',border:'1.5px solid var(--border)',borderRadius:10,fontSize:13,fontFamily:'inherit',fontWeight:600,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
+                <span>👥 團員點過</span>
+                {memberCount>0&&<span style={{background:'var(--org)',color:'#fff',borderRadius:10,padding:'1px 8px',fontSize:12,fontWeight:700}}>{memberCount}</span>}
+              </button>
+              <button onClick={()=>setExpanded(true)}
+                style={{flex:1,padding:'10px 8px',background:'var(--org)',border:'none',borderRadius:10,fontSize:13,fontFamily:'inherit',fontWeight:700,cursor:'pointer',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',gap:4}}>
+                一般商品結帳 {totalAll>0&&<span style={{fontSize:12,opacity:.85}}>NT${totalAll}</span>}
+              </button>
+            </div>
+          : <button onClick={()=>setExpanded(true)}
+              style={{width:'100%',padding:'10px',background:'#f5f5f5',border:'1.5px solid var(--border)',borderRadius:10,fontSize:13,fontFamily:'inherit',fontWeight:600,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
+              <span>👥 團員點過</span>
+              {memberCount>0&&<span style={{background:'var(--org)',color:'#fff',borderRadius:10,padding:'1px 8px',fontSize:12,fontWeight:700}}>{memberCount}</span>}
+              <span style={{fontSize:12,color:'var(--muted)',marginLeft:4}}>點我查看 →</span>
+            </button>
+        }
+      </div>
+    </>
+  );
+}
+
+/* ── MEMBER ORDER LIST (used in GroupBottomBar overlay) ── */
+function MemberOrderList({groupItems,showToast,groupRoom,onRefresh}){
+  const[expanded,setExpanded]=useState({});
+  const toggle=(id)=>setExpanded(p=>({...p,[id]:!p[id]}));
+
+  return(
+    <div>
+      {groupItems.map(member=>{
+        const isOpen=expanded[member.id];
+        const itemCount=(member.items||[]).reduce((s,i)=>s+(i.qty||1),0);
+        return(
+          <div key={member.id} style={{marginBottom:4}}>
+            {/* 成員 header - 點擊展開 */}
+            <div onClick={()=>toggle(member.id)}
+              style={{display:'flex',alignItems:'center',gap:14,padding:'14px 20px',background:'#fff',cursor:'pointer',userSelect:'none'}}>
+              <div style={{width:48,height:48,borderRadius:'50%',background:'var(--org)',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:20,fontWeight:700,flexShrink:0}}>
+                {(member.member_name||'?')[0]}
+              </div>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:700,fontSize:16}}>{member.member_name}</div>
+                <div style={{fontSize:13,color:'var(--muted)',marginTop:2}}>NT${member.subtotal||0} / {itemCount} 份</div>
+              </div>
+              <span style={{fontSize:22,color:'var(--org)',transform:isOpen?'rotate(180deg)':'none',transition:'transform .2s'}}>⌃</span>
+            </div>
+            {/* 展開品項 */}
+            {isOpen&&(
+              <div style={{background:'#f8f8f8',padding:'8px 20px 12px'}}>
+                {(member.items||[]).map((item,idx)=>(
+                  <div key={idx} style={{padding:'10px 0',borderBottom:idx<member.items.length-1?'1px solid #eee':'none',display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+                    <div style={{flex:1}}>
+                      <div style={{fontWeight:600,fontSize:14}}>{item.name}</div>
+                      <div style={{fontSize:12,color:'var(--muted)',marginTop:2}}>
+                        {item.opts&&!item.isFood&&[item.opts.spec,item.opts.sugar,item.opts.milk].filter(Boolean).join(' / ')}
+                      </div>
+                    </div>
+                    <div style={{textAlign:'right',flexShrink:0,marginLeft:12}}>
+                      <div style={{fontSize:14,fontWeight:600,color:'var(--org)'}}>NT${item.price*(item.qty||1)}</div>
+                      <div style={{fontSize:12,color:'var(--muted)'}}>{item.qty||1} 份</div>
+                    </div>
+                  </div>
+                ))}
+                {/* 收合按鈕 */}
+                <button onClick={()=>toggle(member.id)}
+                  style={{width:'100%',marginTop:10,padding:'8px',background:'#fff',border:'1.5px solid var(--border)',borderRadius:20,fontSize:13,fontFamily:'inherit',color:'var(--muted)',cursor:'pointer'}}>
+                  收合 ⌃
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function App(){
   const[tab,setTab]=useState('home');
   const[cart,setCart]=useState([]);
@@ -211,7 +371,7 @@ function App(){
 
       <div className="page-wrap" style={{flex:1}}>
         {tab==='home'&&<HomePage setTab={setTab} setGroupRoom={setGroupRoom} setShowGroupModal={setShowGroupModal} showGroupModal={showGroupModal} showToast={showToast}/>}
-        {tab==='menu'&&<MenuPage cart={cart} setCart={setCart} showToast={showToast} searchQ={searchQ} globalMember={globalMember} setGlobalMember={setGlobalMember}/>}
+        {tab==='menu'&&<MenuPage cart={cart} setCart={setCart} showToast={showToast} searchQ={searchQ} globalMember={globalMember} setGlobalMember={setGlobalMember} groupRoom={groupRoom} groupMyName={groupRoom?.my_name||groupRoom?.creator_name||''}/>}
         {tab==='cart'&&<CartPage cart={cart} setCart={setCart} setTab={setTab} setConfirmOrder={setConfirmOrder} showToast={showToast} globalMember={globalMember} setGlobalMember={setGlobalMember} groupRoom={groupRoom} setGroupRoom={setGroupRoom}/>}
         {tab==='confirm'&&<ConfirmPage order={confirmOrder} setTab={setTab}/>}
         {tab==='my'&&<MyPage globalMember={globalMember} setGlobalMember={setGlobalMember}/>}
@@ -233,6 +393,11 @@ function App(){
           </button>
         ))}
       </div>
+
+      {/* 揪團底部提示條 - 只在點購頁顯示 */}
+      {groupRoom&&tab==='menu'&&(
+        <GroupBottomBar groupRoom={groupRoom} setTab={setTab} showToast={showToast} cart={cart} myName={groupRoom.my_name||groupRoom.creator_name||''} setGroupRoom={setGroupRoom} setConfirmOrder={setConfirmOrder} setCart={setCart}/>
+      )}
       {toastEl}
     </div>
   );
@@ -382,7 +547,7 @@ function HomePage({setTab,setGroupRoom,showToast}){
 
 
 /* ── MENU PAGE ── */
-function MenuPage({cart,setCart,showToast,searchQ,globalMember,setGlobalMember}){
+function MenuPage({cart,setCart,showToast,searchQ,globalMember,setGlobalMember,groupRoom,groupMyName}){
   const[products,setProducts]=useState([]);
   const[loading,setLoading]=useState(true);
   const[cat,setCat]=useState('我的最愛');
@@ -450,10 +615,25 @@ function MenuPage({cart,setCart,showToast,searchQ,globalMember,setGlobalMember})
     const item={id:Date.now(),pid:custom.id,name:custom.name,opts:isFood?{add:[]}:opts,price:custom.price+extra,qty:1,isFood,source:'customer'};
     setCart(prev=>{
       const ex=prev.find(i=>i.pid===item.pid&&JSON.stringify(i.opts)===JSON.stringify(item.opts));
-      if(ex) return prev.map(i=>i.id===ex.id?{...i,qty:i.qty+1}:i);
-      return [...prev,item];
+      const newCart=ex?prev.map(i=>i.id===ex.id?{...i,qty:i.qty+1}:i):[...prev,item];
+      // 揪團模式：加入購物車後自動同步到揪團
+      if(groupRoom&&groupMyName){
+        const name=(groupMyName||'').trim();
+        if(name){
+          const subtotal=newCart.reduce((s,i)=>s+i.price*i.qty,0);
+          db.from('group_items').select('*').eq('room_code',groupRoom.room_code).eq('member_name',name).limit(1)
+            .then(({data:existing})=>{
+              if(existing&&existing.length>0){
+                db.from('group_items').update({items:newCart,subtotal}).eq('id',existing[0].id).then(()=>{});
+              } else {
+                db.from('group_items').insert([{room_code:groupRoom.room_code,member_name:name,items:newCart,subtotal}]).then(()=>{});
+              }
+            });
+        }
+      }
+      return newCart;
     });
-    showToast('✅ '+custom.name+' 已加入購物車');
+    showToast('✅ '+custom.name+' 已加入'+(groupRoom?'揪團購物車':'購物車'));
     setCustom(null);
   }
 
@@ -617,6 +797,11 @@ function CartPage({cart,setCart,setTab,setConfirmOrder,showToast,globalMember,se
   const[groupLoading,setGroupLoading]=useState(false);
   const[showSummary,setShowSummary]=useState(false);
   const[savingGroup,setSavingGroup]=useState(false);
+  // 發票欄位
+  const[invType,setInvType]=useState('mobile'); // paper | mobile | donate
+  const[mobileCarrier,setMobileCarrier]=useState('');
+  const[taxId,setTaxId]=useState('');
+  const[recipientName,setRecipientName]=useState(globalMember?.customer?.name||'');
 
   // 揪團模式：載入所有成員點餐
   useEffect(()=>{
@@ -698,7 +883,7 @@ function CartPage({cart,setCart,setTab,setConfirmOrder,showToast,globalMember,se
     const no='C'+(100+Math.floor(Math.random()*900));
     const cleanPhone=(phone||'').trim();
 
-    // 寫入訂單
+    // 寫入訂單（發票資料僅前端顯示，不寫入DB）
     const{error}=await db.from('orders').insert([{
       order_no:no,
       member_phone:cleanPhone||null,
@@ -735,83 +920,60 @@ function CartPage({cart,setCart,setTab,setConfirmOrder,showToast,globalMember,se
     }
 
     setLoading(false);
-    setConfirmOrder({no,total,pickup_time:pickupTime.toISOString(),pickup,pay,items:cart,phone:cleanPhone});
+    setConfirmOrder({no,total,pickup_time:pickupTime.toISOString(),pickup,pay,items:cart,phone:cleanPhone,invType,mobileCarrier,taxId,recipientName});
     setCart([]);
     setPhone('');
     setTab('confirm');
   }
 
-  // 揪團彙總頁
-  if(groupRoom&&showSummary){
-    const totalAll=(groupItems||[]).reduce((s,m)=>s+(m.subtotal||0),0);
+  // 揪團非主揪：只顯示「我的點餐」，完全不能結帳
+  if(groupRoom&&!groupRoom.isCreator){
     return(
-      <div style={{paddingTop:16,paddingBottom:80}}>
-        <div style={{padding:'0 16px 12px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-          <div style={{fontWeight:700,fontSize:16}}>線上訂單明細｜路易莎咖啡</div>
-          <button onClick={()=>setShowSummary(false)} style={{background:'none',border:'none',fontSize:13,color:'var(--org)',cursor:'pointer',fontFamily:'inherit'}}>← 返回</button>
-        </div>
-
-        {groupLoading&&groupItems.length===0
-          ?<div className="loading"><div className="spin"/></div>
-          :(groupItems||[]).map(member=>(
-            <div key={member.id} style={{marginBottom:8}}>
-              {/* 成員 header */}
-              <div style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',background:'#fff',borderBottom:'1px solid #f0f0f0'}}>
-                <div style={{width:44,height:44,borderRadius:'50%',background:'var(--org)',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:18,fontWeight:700,position:'relative',flexShrink:0}}>
-                  {(member.member_name||'?')[0]}
-                  <div style={{position:'absolute',bottom:-2,right:-2,background:'var(--org)',border:'2px solid #fff',borderRadius:10,padding:'1px 5px',fontSize:10,fontWeight:700}}>
-                    +收款
-                  </div>
-                </div>
-                <div style={{flex:1,fontWeight:700,fontSize:16}}>{member.member_name}</div>
-                <div style={{fontSize:13,color:'var(--muted)',fontWeight:600}}>
-                  NT${member.subtotal||0} / {(member.items||[]).reduce((s,i)=>s+(i.qty||1),0)} 份
-                </div>
-              </div>
-              {/* 品項 */}
-              {(member.items||[]).map((item,idx)=>(
-                <div key={idx} style={{padding:'12px 20px',background:'#f8f8f8',borderBottom:'1px solid #f0f0f0'}}>
-                  <div style={{fontWeight:700,fontSize:14,marginBottom:4}}>{item.name}</div>
-                  <div style={{fontSize:12,color:'var(--muted)'}}>
-                    {item.opts&&!item.isFood&&[item.opts.spec,item.opts.sugar,item.opts.milk].filter(Boolean).join(' / ')}
-                    {item.price&&' / $'+item.price}
-                    {item.qty&&' / '+item.qty+'份'}
-                  </div>
-                  <div style={{fontSize:12,color:'var(--muted)',marginTop:2,display:'flex',alignItems:'center',gap:4}}>
-                    <span>👤</span> 訂購人姓名：{member.member_name}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ))
-        }
-
-        {/* 總金額 + 結帳 */}
-        <div style={{position:'fixed',bottom:64,left:'50%',transform:'translateX(-50%)',width:'100%',maxWidth:420,background:'#fff',borderTop:'1px solid #f0f0f0',padding:'12px 16px'}}>
-          <div style={{display:'flex',justifyContent:'space-between',marginBottom:10,fontWeight:700,fontSize:16}}>
-            <span>團購總金額</span>
-            <span style={{color:'var(--org)'}}>NT${totalAll}</span>
+      <div className="cart-page" style={{paddingTop:16,paddingBottom:80}}>
+        <div style={{background:'#fff3e0',borderRadius:12,padding:14,margin:'0 0 12px',border:'1.5px solid var(--org)',display:'flex',alignItems:'center',gap:10}}>
+          <span style={{fontSize:20}}>🎉</span>
+          <div>
+            <div style={{fontWeight:700,fontSize:14,color:'var(--org)'}}>揪團中：{groupRoom.room_code}</div>
+            <div style={{fontSize:12,color:'var(--muted)',marginTop:2}}>等待主揪 <strong>{groupRoom.creator_name}</strong> 結帳</div>
           </div>
-          <button onClick={async()=>{
-            // 把所有揪團品項合併成一筆訂單送出
-            const allItems=[];
-            (groupItems||[]).forEach(m=>(m.items||[]).forEach(i=>allItems.push({...i,member:m.member_name})));
-            const no='GP-'+(1000+Math.floor(Math.random()*9000));
-            const pickup_time=new Date(Date.now()+15*60000).toISOString();
-            const{error}=await db.from('orders').insert([{
-              order_no:no, items:allItems, total:totalAll,
-              payment_method:'揪團結帳', status:'paid', pickup_time,
-              member_phone:phone||null,
-            }]);
-            await db.from('group_orders').update({status:'closed'}).eq('room_code',groupRoom.room_code);
-            if(!error){
-              setConfirmOrder({no,total:totalAll,pickup_time,pickup:'self',pay:'揪團',items:allItems});
-              setCart([]); setGroupRoom(null); setTab('confirm');
-            } else { showToast('❌ 結帳失敗：'+error.message); }
-          }}
-            style={{width:'100%',padding:14,background:'var(--org)',color:'#fff',border:'none',borderRadius:12,fontSize:16,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
-            確認送出團購訂單
-          </button>
+        </div>
+        {/* 顯示自己的購物車內容 */}
+        <div className="cart-section">
+          <div style={{fontWeight:700,fontSize:15,marginBottom:12}}>我的點餐</div>
+          {cart.length===0
+            ? <div style={{textAlign:'center',padding:'20px 0',color:'var(--muted)',fontSize:13}}>還沒有點餐，去點購頁選商品</div>
+            : <>
+                {cart.map(item=>(
+                  <div key={item.id}>
+                    <div className="cart-row">
+                      <div style={{flex:1}}>
+                        <div className="cart-item-name">{item.name} x {item.qty}</div>
+                        {item.opts&&<div style={{fontSize:12,color:'var(--muted)',marginTop:2}}>
+                          {!item.isFood&&[item.opts.spec,item.opts.sugar,item.opts.milk].filter(Boolean).join(' / ')}
+                        </div>}
+                      </div>
+                      <div style={{display:'flex',alignItems:'center',gap:10}}>
+                        <div style={{display:'flex',alignItems:'center',gap:6}}>
+                          <button onClick={()=>updQty(item.id,-1)} style={{width:24,height:24,border:'1px solid var(--border)',borderRadius:4,background:'#fff',cursor:'pointer',fontSize:16,display:'flex',alignItems:'center',justifyContent:'center'}}>−</button>
+                          <span style={{fontSize:14,fontWeight:600,minWidth:16,textAlign:'center'}}>{item.qty}</span>
+                          <button onClick={()=>updQty(item.id,1)} style={{width:24,height:24,border:'1px solid var(--border)',borderRadius:4,background:'#fff',cursor:'pointer',fontSize:16,display:'flex',alignItems:'center',justifyContent:'center'}}>+</button>
+                        </div>
+                        <div className="cart-price">${item.price*item.qty}</div>
+                      </div>
+                    </div>
+                    <div className="divider"/>
+                  </div>
+                ))}
+                <div className="cart-total-row">
+                  <div className="cart-total-label">我的小計</div>
+                  <div className="cart-total-price">${total}</div>
+                </div>
+              </>
+          }
+        </div>
+        <div style={{background:'#f5f5f5',borderRadius:12,padding:16,textAlign:'center'}}>
+          <div style={{fontSize:13,color:'var(--muted)',marginBottom:4}}>✅ 點餐內容已自動同步至揪團</div>
+          <div style={{fontSize:12,color:'var(--muted)'}}>主揪確認所有人的點餐後就會結帳</div>
         </div>
       </div>
     );
@@ -924,24 +1086,16 @@ function CartPage({cart,setCart,setTab,setConfirmOrder,showToast,globalMember,se
 
       {/* 會員電話 */}
       <div className="cart-section">
-        {/* 揪團模式：顯示名字輸入 + 儲存按鈕 */}
+        {/* 揪團模式：顯示名字輸入 */}
         {groupRoom&&(
           <div style={{background:'#fff3e0',borderRadius:12,padding:16,marginBottom:12,border:'1.5px solid var(--org)'}}>
             <div style={{fontWeight:700,marginBottom:8,color:'var(--org)'}}>🎉 揪團中：{groupRoom.room_code}</div>
-            <div style={{fontSize:13,color:'var(--muted)',marginBottom:10}}>先輸入你的名字，再把選好的餐儲存到揪團</div>
-            <div style={{display:'flex',gap:8,marginBottom:10}}>
+            <div style={{fontSize:13,color:'var(--muted)',marginBottom:10}}>加入購物車的商品會自動存入揪團，無需額外操作</div>
+            <div style={{display:'flex',gap:8,alignItems:'center'}}>
               <input value={myName} onChange={e=>setMyName(e.target.value)}
-                placeholder="你的名字"
+                placeholder="你的名字（必填）"
                 style={{flex:1,border:'1.5px solid var(--border)',borderRadius:8,padding:'9px 12px',fontSize:14,fontFamily:'inherit',outline:'none'}}/>
-              <button onClick={saveGroupCart} disabled={savingGroup}
-                style={{padding:'9px 16px',background:'var(--org)',color:'#fff',border:'none',borderRadius:8,fontSize:13,fontFamily:'inherit',fontWeight:700,cursor:'pointer',whiteSpace:'nowrap'}}>
-                {savingGroup?'儲存...':'儲存到揪團'}
-              </button>
             </div>
-            <button onClick={()=>{setShowSummary(true);loadGroupItems();}}
-              style={{width:'100%',padding:10,background:'#1a1a1a',color:'#fff',border:'none',borderRadius:8,fontSize:13,fontFamily:'inherit',fontWeight:600,cursor:'pointer'}}>
-              查看所有人的點餐 →
-            </button>
           </div>
         )}
 
@@ -955,6 +1109,50 @@ function CartPage({cart,setCart,setTab,setConfirmOrder,showToast,globalMember,se
             onFocus={e=>e.target.style.borderColor='var(--org)'}
             onBlur={e=>e.target.style.borderColor='var(--border)'}
           />
+        </div>
+      </div>
+
+      {/* 發票設定 */}
+      <div className="cart-section">
+        <div className="pay-section-title" style={{marginBottom:12}}>🧾 發票設定</div>
+        <div style={{display:'flex',gap:8,marginBottom:12}}>
+          {[{v:'mobile',l:'手機載具'},{v:'paper',l:'紙本發票'},{v:'donate',l:'愛心捐贈'}].map(o=>(
+            <button key={o.v} onClick={()=>setInvType(o.v)}
+              style={{flex:1,padding:'10px 4px',border:`1.5px solid ${invType===o.v?'var(--org)':'var(--border)'}`,borderRadius:8,fontSize:13,background:invType===o.v?'var(--org-light)':'#fff',color:invType===o.v?'var(--org)':'var(--text)',fontFamily:'inherit',cursor:'pointer',fontWeight:invType===o.v?700:400}}>
+              {o.l}
+            </button>
+          ))}
+        </div>
+        {invType==='mobile'&&(
+          <div style={{marginBottom:10}}>
+            <div style={{fontSize:12,color:'var(--muted)',marginBottom:6}}>手機條碼載具（/+7碼英數）</div>
+            <input value={mobileCarrier} onChange={e=>setMobileCarrier(e.target.value.toUpperCase())}
+              placeholder="/TS9EZ5L"
+              style={{width:'100%',border:'1.5px solid var(--border)',borderRadius:8,padding:'10px 14px',fontSize:14,fontFamily:'monospace',outline:'none'}}
+              onFocus={e=>e.target.style.borderColor='var(--org)'}
+              onBlur={e=>e.target.style.borderColor='var(--border)'}/>
+          </div>
+        )}
+        {invType==='donate'&&(
+          <div style={{fontSize:13,color:'var(--muted)',padding:'8px 12px',background:'#f5f5f5',borderRadius:8}}>
+            發票將捐贈給社福機構，感謝您的愛心 ❤️
+          </div>
+        )}
+        <div style={{marginTop:10}}>
+          <div style={{fontSize:12,color:'var(--muted)',marginBottom:6}}>統一編號（公司戶選填）</div>
+          <input value={taxId} onChange={e=>setTaxId(e.target.value.replace(/\D/g,'').slice(0,8))}
+            placeholder="輸入8位數統一編號"
+            style={{width:'100%',border:'1.5px solid var(--border)',borderRadius:8,padding:'10px 14px',fontSize:14,fontFamily:'inherit',outline:'none'}}
+            onFocus={e=>e.target.style.borderColor='var(--org)'}
+            onBlur={e=>e.target.style.borderColor='var(--border)'}/>
+        </div>
+        <div style={{marginTop:10}}>
+          <div style={{fontSize:12,color:'var(--muted)',marginBottom:6}}>取貨人姓名</div>
+          <input value={recipientName} onChange={e=>setRecipientName(e.target.value)}
+            placeholder="例：陳小明"
+            style={{width:'100%',border:'1.5px solid var(--border)',borderRadius:8,padding:'10px 14px',fontSize:14,fontFamily:'inherit',outline:'none'}}
+            onFocus={e=>e.target.style.borderColor='var(--org)'}
+            onBlur={e=>e.target.style.borderColor='var(--border)'}/>
         </div>
       </div>
 
