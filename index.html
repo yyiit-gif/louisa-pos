@@ -480,11 +480,13 @@ function OrdersPage({showToast}){
     const summary=items.map(i=>`${i.name} x${i.qty||1}`).join('、');
     const pickup=o.pickup_time?new Date(o.pickup_time).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}):'-';
     const isCustomer=o.order_no&&o.order_no.startsWith('C');
+    const isGroup=o.order_no&&o.order_no.startsWith('GP-');
     return(
-      <tr style={{background:isCustomer?'#fffde7':''}}>
+      <tr style={{background:isGroup?'#f3e5f5':isCustomer?'#fffde7':''}}>
         <td>
           <strong>{o.order_no}</strong>
-          {isCustomer&&<span style={{marginLeft:4,fontSize:10,background:'var(--orange)',color:'#fff',padding:'1px 5px',borderRadius:6}}>顧客</span>}
+          {isGroup&&<span style={{marginLeft:4,fontSize:10,background:'#9c27b0',color:'#fff',padding:'1px 5px',borderRadius:6}}>揪團</span>}
+          {isCustomer&&!isGroup&&<span style={{marginLeft:4,fontSize:10,background:'var(--orange)',color:'#fff',padding:'1px 5px',borderRadius:6}}>顧客</span>}
         </td>
         <td>{pickup}</td>
         <td style={{maxWidth:160,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{summary}</td>
