@@ -52,6 +52,8 @@ body{font-family:'Noto Sans TC',sans-serif;color:var(--text);max-width:420px;mar
 /* MENU */
 .cat-bar{display:flex;border-bottom:2px solid var(--border);background:var(--white);position:sticky;top:var(--top-h);z-index:50;overflow-x:auto}
 .cat-bar::-webkit-scrollbar{display:none}
+.time-scroll-hide::-webkit-scrollbar{display:none}
+.time-scroll-hide{-ms-overflow-style:none;scrollbar-width:none}
 .cat-item{padding:12px 18px;font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
 .cat-item.active{color:var(--org);border-bottom-color:var(--org);font-weight:700}
 .prod-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 16px}
@@ -154,9 +156,26 @@ function App(){
   const[searching,setSearching]=useState(false);
   const[searchQ,setSearchQ]=useState('');
   const searchRef=React.useRef(null);
+  const[globalMember,setGlobalMember]=useState(null);
+  // 揪團狀態
+  const[groupRoom,setGroupRoom]=useState(null); // {room_code, creator_name, isCreator}
+  const[showGroupModal,setShowGroupModal]=useState(false); // 揪團彈窗
+  const[groupSummaryMode,setGroupSummaryMode]=useState(false); // 購物車顯示團購彙總
+
+  // 從 URL 參數偵測是否是揪團邀請連結
+  useEffect(()=>{
+    const params=new URLSearchParams(window.location.search);
+    const code=params.get('group');
+    const name=params.get('name');
+    if(code){
+      setGroupRoom({room_code:code,creator_name:name||'',isCreator:false});
+      setTab('menu');
+      showToast&&showToast('🎉 已加入揪團：'+code);
+    }
+  },[]);
 
   const cartCount=cart.reduce((s,i)=>s+i.qty,0);
-  const titles={home:'',menu:'逢甲大學店',cart:'購物車',confirm:'確認明細',my:'我的'};
+  const titles={home:'',menu:'逢甲大學店',cart:groupRoom?'揪團購物車':'購物車',confirm:'確認明細',my:'我的'};
   const showBack=['menu','confirm'].includes(tab);
 
   function goBack(){
@@ -171,7 +190,6 @@ function App(){
 
   return(
     <div style={{display:'flex',flexDirection:'column',minHeight:'100vh',background:'var(--bg)'}}>
-      {/* Top Bar */}
       <div className="top-bar">
         {searching&&tab==='menu'
           ? <div style={{display:'flex',alignItems:'center',gap:8,flex:1}}>
@@ -184,22 +202,21 @@ function App(){
           : <div style={{display:'flex',alignItems:'center',gap:4,flex:1}}>
               {showBack&&<span className="back" onClick={goBack}>←</span>}
               <h1>{titles[tab]}</h1>
+              {groupRoom&&tab==='menu'&&<span style={{fontSize:11,background:'var(--org)',color:'#fff',padding:'2px 7px',borderRadius:8,marginLeft:4,fontWeight:700}}>揪團中</span>}
             </div>
         }
         {tab==='menu'&&!searching&&<span style={{fontSize:22,cursor:'pointer'}} onClick={openSearch}>🔍</span>}
         {tab==='home'&&<span style={{fontSize:22}}></span>}
       </div>
 
-      {/* Pages */}
       <div className="page-wrap" style={{flex:1}}>
-        {tab==='home'&&<HomePage setTab={setTab}/>}
-        {tab==='menu'&&<MenuPage cart={cart} setCart={setCart} showToast={showToast} searchQ={searchQ}/>}
-        {tab==='cart'&&<CartPage cart={cart} setCart={setCart} setTab={setTab} setConfirmOrder={setConfirmOrder} showToast={showToast}/>}
+        {tab==='home'&&<HomePage setTab={setTab} setGroupRoom={setGroupRoom} setShowGroupModal={setShowGroupModal} showGroupModal={showGroupModal} showToast={showToast}/>}
+        {tab==='menu'&&<MenuPage cart={cart} setCart={setCart} showToast={showToast} searchQ={searchQ} globalMember={globalMember} setGlobalMember={setGlobalMember}/>}
+        {tab==='cart'&&<CartPage cart={cart} setCart={setCart} setTab={setTab} setConfirmOrder={setConfirmOrder} showToast={showToast} globalMember={globalMember} setGlobalMember={setGlobalMember} groupRoom={groupRoom} setGroupRoom={setGroupRoom}/>}
         {tab==='confirm'&&<ConfirmPage order={confirmOrder} setTab={setTab}/>}
-        {tab==='my'&&<MyPage/>}
+        {tab==='my'&&<MyPage globalMember={globalMember} setGlobalMember={setGlobalMember}/>}
       </div>
 
-      {/* Bottom Nav */}
       <div className="bottom-nav">
         {[
           {k:'home',i:'🏠',l:'首頁'},
@@ -222,13 +239,49 @@ function App(){
 }
 
 /* ── HOME PAGE ── */
-function HomePage({setTab}){
+function HomePage({setTab,setGroupRoom,showToast}){
+  const[groupModal,setGroupModal]=useState(false);
+  const[creatorName,setCreatorName]=useState('');
+  const[creating,setCreating]=useState(false);
+  const[groupInfo,setGroupInfo]=useState(null);
+  const currentUrl=(window.location.href.split('?')[0]);
+
+  async function createGroup(){
+    if(!creatorName.trim()){showToast('請輸入你的名字');return;}
+    setCreating(true);
+    const code='G'+Math.random().toString(36).substr(2,6).toUpperCase();
+    const{error}=await db.from('group_orders').insert([{
+      room_code:code, creator_name:creatorName.trim(), status:'open'
+    }]);
+    if(error){showToast('❌ 建立失敗：'+error.message);setCreating(false);return;}
+    await db.from('group_items').insert([{
+      room_code:code, member_name:creatorName.trim(), items:[], subtotal:0
+    }]);
+    const inviteUrl=currentUrl+'?group='+code+'&name='+encodeURIComponent(creatorName.trim());
+    const qrUrl='https://api.qrserver.com/v1/create-qr-code/?size=180x180&data='+encodeURIComponent(inviteUrl);
+    setGroupInfo({room_code:code, url:inviteUrl, qr:qrUrl});
+    setGroupRoom({room_code:code, creator_name:creatorName.trim(), my_name:creatorName.trim(), isCreator:true});
+    setCreating(false);
+  }
+
+  function copyLink(){
+    navigator.clipboard.writeText(groupInfo.url).then(()=>showToast('✅ 連結已複製！')).catch(()=>{
+      const el=document.createElement('textarea');
+      el.value=groupInfo.url; document.body.appendChild(el);
+      el.select(); document.execCommand('copy'); document.body.removeChild(el);
+      showToast('✅ 連結已複製！');
+    });
+  }
+
+  function enterGroup(){
+    setGroupModal(false); setGroupInfo(null); setCreatorName('');
+    setTab('menu');
+  }
+
   return(
     <div>
       <div className="loc-bar">
-        <span>📍</span>
-        <span>當前位置：台中市西屯區...</span>
-        <span className="arr">▼</span>
+        <span>📍</span><span>當前位置：台中市西屯區...</span><span className="arr">▼</span>
       </div>
       <div className="pad16">
         <div className="search-box">
@@ -236,8 +289,6 @@ function HomePage({setTab}){
           <input placeholder="搜尋門市或商品"/>
         </div>
       </div>
-
-      {/* Banner */}
       <div className="pad16">
         <div className="banner" style={{background:'linear-gradient(135deg,#E87722,#C45E0A)',borderRadius:14,padding:20,color:'#fff',position:'relative',minHeight:120,overflow:'hidden'}}>
           <div style={{display:'flex',gap:6,marginBottom:10}}>
@@ -254,16 +305,13 @@ function HomePage({setTab}){
           </div>
         </div>
       </div>
-
-      {/* 品牌介紹 */}
       <div className="pad16" style={{marginTop:4}}>
         <div className="section-title">品牌介紹</div>
         <p style={{fontSize:13,lineHeight:1.8,color:'#444',marginBottom:20}}>
-          因一句「懂得喝義式咖啡才是行家」創辦人黃銘賢初嚐 Espresso，強烈風味震撼了味蕾，定下做杯好咖啡的決心。堅持手工烘豆、細細翻動、控制火侯，尋找甜蜜點讓咖啡豆完美釋放風味，歷經四年研發出經典配方，以義大利女神 Louisa 為名，守護讓所有咖啡愛好者喝杯好咖啡的信念，堅定對精品咖啡文化的熱情，並於 2006 年創立第一間門市。
+          因一句「懂得喝義式咖啡才是行家」創辦人黃銘賢初嚐 Espresso，強烈風味震撼了味蕾，定下做杯好咖啡的決心。堅持手工烘豆、細細翻動、控制火侯，歷經四年研發出經典配方，以義大利女神 Louisa 為名，並於 2006 年創立第一間門市。
         </p>
-
         <div className="section-title">附近推薦店家</div>
-        <div className="store-card" onClick={()=>setTab('menu')} style={{cursor:'pointer'}}>
+        <div className="store-card" onClick={()=>setTab('menu')} style={{cursor:'pointer',marginBottom:16}}>
           <div className="store-img" style={{background:'#c8d8c0',fontSize:60,display:'flex',alignItems:'center',justifyContent:'center'}}>🏪</div>
           <div className="store-info">
             <div className="store-name">路易莎 逢甲大學店</div>
@@ -272,13 +320,69 @@ function HomePage({setTab}){
         </div>
       </div>
 
-      <button className="launch-btn" onClick={()=>setTab('menu')}>快速發起揪團</button>
+      <button className="launch-btn" onClick={()=>setGroupModal(true)}>🎉 快速發起揪團</button>
+
+      {/* 揪團 Modal */}
+      {groupModal&&(
+        <div className="modal-wrap" onClick={()=>{if(!groupInfo){setGroupModal(false);setCreatorName('');}}}>
+          <div className="modal-sheet" onClick={e=>e.stopPropagation()} style={{position:'relative',paddingBottom:32}}>
+            <button onClick={()=>{setGroupModal(false);setGroupInfo(null);setCreatorName('');}}
+              style={{position:'absolute',top:16,right:16,background:'none',border:'none',fontSize:22,cursor:'pointer',color:'#aaa'}}>✕</button>
+
+            {!groupInfo
+              ?<>
+                <div style={{fontWeight:700,fontSize:20,marginBottom:6}}>揪團分享</div>
+                <div style={{fontSize:13,color:'var(--muted)',marginBottom:20}}>建立揪團，讓朋友掃 QR Code 一起點餐</div>
+                <div style={{marginBottom:16}}>
+                  <div style={{fontSize:13,color:'var(--muted)',marginBottom:8}}>你的名字</div>
+                  <input value={creatorName} onChange={e=>setCreatorName(e.target.value)}
+                    placeholder="例：小明"
+                    style={{width:'100%',border:'1.5px solid #e0e0e0',borderRadius:10,padding:'12px 14px',fontSize:15,fontFamily:'inherit',outline:'none'}}
+                    onKeyDown={e=>e.key==='Enter'&&createGroup()}/>
+                </div>
+                <button onClick={createGroup} disabled={creating}
+                  style={{width:'100%',padding:16,background:'var(--org)',color:'#fff',border:'none',borderRadius:12,fontSize:16,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
+                  {creating?'建立中...':'🎉 建立揪團'}
+                </button>
+              </>
+              :<>
+                <div style={{fontWeight:700,fontSize:20,marginBottom:4,textAlign:'center'}}>揪團分享</div>
+                <div style={{fontSize:13,color:'var(--muted)',textAlign:'center',marginBottom:16}}>連結分享給其它人，邀請大家加入訂單，一起團購！</div>
+                <div style={{background:'#f8f8f8',borderRadius:14,padding:16,marginBottom:12,display:'flex',alignItems:'center',justifyContent:'space-around'}}>
+                  <div style={{fontSize:56,lineHeight:1}}>☕</div>
+                  <div style={{textAlign:'center'}}>
+                    <img src={groupInfo.qr} alt="QR Code"
+                      style={{width:150,height:150,borderRadius:8,background:'#fff',padding:4,display:'block'}}/>
+                    <div style={{fontSize:12,color:'var(--muted)',marginTop:6}}>掃碼加入揪團</div>
+                  </div>
+                </div>
+                <div style={{fontSize:14,color:'var(--org)',textAlign:'center',marginBottom:12,fontWeight:700}}>
+                  揪團代碼：{groupInfo.room_code}
+                </div>
+                <div style={{display:'flex',gap:8,marginBottom:12,alignItems:'center'}}>
+                  <input readOnly value={groupInfo.url}
+                    style={{flex:1,border:'1px solid #e0e0e0',borderRadius:8,padding:'10px 12px',fontSize:11,fontFamily:'monospace',background:'#f5f5f5',color:'#555',outline:'none'}}/>
+                  <button onClick={copyLink}
+                    style={{padding:'10px 14px',background:'var(--org)',color:'#fff',border:'none',borderRadius:8,fontSize:13,fontFamily:'inherit',fontWeight:600,cursor:'pointer',whiteSpace:'nowrap'}}>
+                    複製
+                  </button>
+                </div>
+                <button onClick={enterGroup}
+                  style={{width:'100%',padding:16,background:'#1a1a1a',color:'#fff',border:'none',borderRadius:12,fontSize:16,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
+                  開始點餐 →
+                </button>
+              </>
+            }
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
+
 /* ── MENU PAGE ── */
-function MenuPage({cart,setCart,showToast,searchQ}){
+function MenuPage({cart,setCart,showToast,searchQ,globalMember,setGlobalMember}){
   const[products,setProducts]=useState([]);
   const[loading,setLoading]=useState(true);
   const[cat,setCat]=useState('我的最愛');
@@ -287,13 +391,37 @@ function MenuPage({cart,setCart,showToast,searchQ}){
   const[favorites,setFavorites]=useState(()=>{
     try{ return JSON.parse(localStorage.getItem('louisa_favs')||'[]'); }catch{ return []; }
   });
+  const[memberInput,setMemberInput]=useState('');
+  const[memberMsg,setMemberMsg]=useState('');
+  const[memberLoading,setMemberLoading]=useState(false);
+  const[showMemberBar,setShowMemberBar]=useState(false);
 
   useEffect(()=>{
     db.from('products').select('*').eq('available',true).order('id')
       .then(({data})=>{ setProducts(data||[]); setLoading(false); });
   },[]);
 
-  // 搜尋優先：有 searchQ 就跨全部商品搜尋
+  async function lookupMember(){
+    if(!memberInput.trim()){ setMemberMsg('請輸入手機號碼'); return; }
+    setMemberLoading(true); setMemberMsg('');
+    const{data}=await db.from('customers').select('*').eq('phone',memberInput.trim()).limit(1);
+    if(data&&data.length>0){
+      const c=data[0];
+      const{data:od}=await db.from('orders').select('*').eq('member_phone',memberInput.trim()).order('created_at',{ascending:false}).limit(20);
+      setGlobalMember({phone:memberInput.trim(),customer:c,orders:od||[]});
+      setMemberMsg('✅ 歡迎回來，'+c.name+'！');
+      showToast('✅ 會員登入成功：'+c.name);
+    } else {
+      setMemberMsg('查無此會員資料，點餐即可成為會員');
+      setGlobalMember({phone:memberInput.trim(),customer:null,orders:[]});
+    }
+    setMemberLoading(false);
+  }
+
+  function clearMember(){
+    setGlobalMember(null); setMemberInput(''); setMemberMsg(''); setShowMemberBar(false);
+  }
+
   const isSearching=searchQ&&searchQ.trim().length>0;
 
   function toggleFav(p,e){
@@ -308,8 +436,6 @@ function MenuPage({cart,setCart,showToast,searchQ}){
   }
 
   const cats=['我的最愛','全部','義式咖啡','茶飲','精品咖啡','輕食'];
-
-  // 篩選邏輯：搜尋模式下搜全部，否則依分類
   const filtered=isSearching
     ? products.filter(p=>p.name.includes(searchQ.trim()))
     : cat==='我的最愛'?favorites
@@ -335,6 +461,46 @@ function MenuPage({cart,setCart,showToast,searchQ}){
 
   return(
     <div>
+      {/* 會員輸入欄 */}
+      {!globalMember
+        ? <div style={{background:'#fff',borderBottom:'1px solid #f0f0f0',padding:'10px 16px'}}>
+            {!showMemberBar
+              ? <button onClick={()=>setShowMemberBar(true)}
+                  style={{width:'100%',padding:'10px',background:'var(--org-light)',border:'1.5px dashed var(--org)',borderRadius:10,fontSize:13,color:'var(--org)',fontFamily:'inherit',cursor:'pointer',fontWeight:500}}>
+                  👤 輸入會員電話享優惠（選填）
+                </button>
+              : <div>
+                  <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:6}}>
+                    <input value={memberInput} onChange={e=>setMemberInput(e.target.value)}
+                      placeholder="輸入手機號碼" onKeyDown={e=>e.key==='Enter'&&lookupMember()}
+                      style={{flex:1,border:'1.5px solid var(--border)',borderRadius:8,padding:'9px 12px',fontSize:14,fontFamily:'inherit',outline:'none'}}/>
+                    <button onClick={lookupMember} disabled={memberLoading}
+                      style={{padding:'9px 16px',background:'var(--org)',color:'#fff',border:'none',borderRadius:8,fontSize:13,fontFamily:'inherit',fontWeight:700,cursor:'pointer',whiteSpace:'nowrap'}}>
+                      {memberLoading?'查詢...':'確認'}
+                    </button>
+                    <button onClick={()=>{setShowMemberBar(false);setMemberInput('');setMemberMsg('');}}
+                      style={{background:'none',border:'none',fontSize:18,cursor:'pointer',color:'#aaa',padding:'0 4px'}}>✕</button>
+                  </div>
+                  {memberMsg&&(
+                    <div style={{fontSize:12,padding:'6px 10px',borderRadius:6,
+                      background:memberMsg.startsWith('✅')?'#e8f5e9':'#fff8e1',
+                      color:memberMsg.startsWith('✅')?'#2e7d32':'#f57f17'}}>
+                      {memberMsg}
+                    </div>
+                  )}
+                </div>
+            }
+          </div>
+        : <div style={{background:globalMember.customer?'#e8f5e9':'#fff8e1',padding:'10px 16px',display:'flex',justifyContent:'space-between',alignItems:'center',borderBottom:'1px solid #f0f0f0'}}>
+            <div style={{fontSize:13}}>
+              {globalMember.customer
+                ? <span>👤 <strong style={{color:'#2e7d32'}}>{globalMember.customer.name}</strong> · {globalMember.phone}</span>
+                : <span style={{color:'#f57f17'}}>👤 {globalMember.phone} · 新會員，點餐後自動建立</span>
+              }
+            </div>
+            <button onClick={clearMember} style={{background:'none',border:'none',fontSize:13,cursor:'pointer',color:'#aaa',padding:'0 4px'}}>切換</button>
+          </div>
+      }
       {/* Category tabs — 搜尋中隱藏 */}
       {!isSearching&&(
         <div className="cat-bar">
@@ -440,22 +606,72 @@ function MenuPage({cart,setCart,showToast,searchQ}){
 }
 
 /* ── CART PAGE ── */
-function CartPage({cart,setCart,setTab,setConfirmOrder,showToast}){
+function CartPage({cart,setCart,setTab,setConfirmOrder,showToast,globalMember,setGlobalMember,groupRoom,setGroupRoom}){
   const[pickup,setPickup]=useState('self');
   const[pay,setPay]=useState('信用卡');
-  const[phone,setPhone]=useState('');
+  const[phone,setPhone]=useState(globalMember?.phone||'');
   const[loading,setLoading]=useState(false);
+  const[myName,setMyName]=useState(groupRoom?.my_name||groupRoom?.creator_name||'');
+  const[nameInput,setNameInput]=useState('');
+  const[groupItems,setGroupItems]=useState([]);
+  const[groupLoading,setGroupLoading]=useState(false);
+  const[showSummary,setShowSummary]=useState(false);
+  const[savingGroup,setSavingGroup]=useState(false);
+
+  // 揪團模式：載入所有成員點餐
+  useEffect(()=>{
+    if(groupRoom&&showSummary){
+      loadGroupItems();
+      const timer=setInterval(loadGroupItems,8000);
+      return()=>clearInterval(timer);
+    }
+  },[groupRoom,showSummary]);
+
+  async function loadGroupItems(){
+    setGroupLoading(true);
+    const{data}=await db.from('group_items').select('*').eq('room_code',groupRoom.room_code).order('created_at');
+    setGroupItems(data||[]);
+    setGroupLoading(false);
+  }
+
+  async function saveGroupCart(){
+    if(!myName.trim()){showToast('請輸入你的名字');return;}
+    if(cart.length===0){showToast('購物車是空的');return;}
+    setSavingGroup(true);
+    const subtotal=cart.reduce((s,i)=>s+i.price*i.qty,0);
+    // 更新或新增自己的品項
+    const{data:existing}=await db.from('group_items').select('*').eq('room_code',groupRoom.room_code).eq('member_name',myName.trim()).limit(1);
+    if(existing&&existing.length>0){
+      await db.from('group_items').update({items:cart,subtotal}).eq('id',existing[0].id);
+    } else {
+      await db.from('group_items').insert([{room_code:groupRoom.room_code,member_name:myName.trim(),items:cart,subtotal}]);
+    }
+    setSavingGroup(false);
+    showToast('✅ 已儲存到揪團！');
+    setShowSummary(true);
+    loadGroupItems();
+  }
 
   // 產生可選時間清單：從現在起 +15分，每15分鐘一個選項，到晚上10點
   function getTimeSlots(mode){
     const slots=[];
     const now=new Date();
     const minMins=mode==='self'?15:40;
-    const start=new Date(now.getTime()+minMins*60000);
-    start.setMinutes(Math.ceil(start.getMinutes()/15)*15, 0, 0);
-    const end=new Date(); end.setHours(22,0,0,0);
+    const earliest=new Date(now.getTime()+minMins*60000);
+
+    // 營業時間：07:30 ~ 20:30
+    const dayStart=new Date(now); dayStart.setHours(7,30,0,0);
+    const dayEnd=new Date(now); dayEnd.setHours(20,30,0,0);
+
+    // 起點：earliest 和 07:30 取較晚者，無條件進位到下個15分鐘
+    let start=new Date(Math.max(earliest.getTime(), dayStart.getTime()));
+    const m=start.getMinutes();
+    const roundedM=Math.ceil(m/15)*15;
+    start.setMinutes(roundedM,0,0);
+    if(roundedM>=60){ start.setHours(start.getHours()+1); start.setMinutes(0,0,0); }
+
     let cur=new Date(start);
-    while(cur<=end){
+    while(cur<=dayEnd){
       slots.push(new Date(cur));
       cur=new Date(cur.getTime()+15*60000);
     }
@@ -525,6 +741,82 @@ function CartPage({cart,setCart,setTab,setConfirmOrder,showToast}){
     setTab('confirm');
   }
 
+  // 揪團彙總頁
+  if(groupRoom&&showSummary){
+    const totalAll=(groupItems||[]).reduce((s,m)=>s+(m.subtotal||0),0);
+    return(
+      <div style={{paddingTop:16,paddingBottom:80}}>
+        <div style={{padding:'0 16px 12px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <div style={{fontWeight:700,fontSize:16}}>線上訂單明細｜路易莎咖啡</div>
+          <button onClick={()=>setShowSummary(false)} style={{background:'none',border:'none',fontSize:13,color:'var(--org)',cursor:'pointer',fontFamily:'inherit'}}>← 返回</button>
+        </div>
+
+        {groupLoading&&groupItems.length===0
+          ?<div className="loading"><div className="spin"/></div>
+          :(groupItems||[]).map(member=>(
+            <div key={member.id} style={{marginBottom:8}}>
+              {/* 成員 header */}
+              <div style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',background:'#fff',borderBottom:'1px solid #f0f0f0'}}>
+                <div style={{width:44,height:44,borderRadius:'50%',background:'var(--org)',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:18,fontWeight:700,position:'relative',flexShrink:0}}>
+                  {(member.member_name||'?')[0]}
+                  <div style={{position:'absolute',bottom:-2,right:-2,background:'var(--org)',border:'2px solid #fff',borderRadius:10,padding:'1px 5px',fontSize:10,fontWeight:700}}>
+                    +收款
+                  </div>
+                </div>
+                <div style={{flex:1,fontWeight:700,fontSize:16}}>{member.member_name}</div>
+                <div style={{fontSize:13,color:'var(--muted)',fontWeight:600}}>
+                  NT${member.subtotal||0} / {(member.items||[]).reduce((s,i)=>s+(i.qty||1),0)} 份
+                </div>
+              </div>
+              {/* 品項 */}
+              {(member.items||[]).map((item,idx)=>(
+                <div key={idx} style={{padding:'12px 20px',background:'#f8f8f8',borderBottom:'1px solid #f0f0f0'}}>
+                  <div style={{fontWeight:700,fontSize:14,marginBottom:4}}>{item.name}</div>
+                  <div style={{fontSize:12,color:'var(--muted)'}}>
+                    {item.opts&&!item.isFood&&[item.opts.spec,item.opts.sugar,item.opts.milk].filter(Boolean).join(' / ')}
+                    {item.price&&' / $'+item.price}
+                    {item.qty&&' / '+item.qty+'份'}
+                  </div>
+                  <div style={{fontSize:12,color:'var(--muted)',marginTop:2,display:'flex',alignItems:'center',gap:4}}>
+                    <span>👤</span> 訂購人姓名：{member.member_name}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))
+        }
+
+        {/* 總金額 + 結帳 */}
+        <div style={{position:'fixed',bottom:64,left:'50%',transform:'translateX(-50%)',width:'100%',maxWidth:420,background:'#fff',borderTop:'1px solid #f0f0f0',padding:'12px 16px'}}>
+          <div style={{display:'flex',justifyContent:'space-between',marginBottom:10,fontWeight:700,fontSize:16}}>
+            <span>團購總金額</span>
+            <span style={{color:'var(--org)'}}>NT${totalAll}</span>
+          </div>
+          <button onClick={async()=>{
+            // 把所有揪團品項合併成一筆訂單送出
+            const allItems=[];
+            (groupItems||[]).forEach(m=>(m.items||[]).forEach(i=>allItems.push({...i,member:m.member_name})));
+            const no='GP-'+(1000+Math.floor(Math.random()*9000));
+            const pickup_time=new Date(Date.now()+15*60000).toISOString();
+            const{error}=await db.from('orders').insert([{
+              order_no:no, items:allItems, total:totalAll,
+              payment_method:'揪團結帳', status:'paid', pickup_time,
+              member_phone:phone||null,
+            }]);
+            await db.from('group_orders').update({status:'closed'}).eq('room_code',groupRoom.room_code);
+            if(!error){
+              setConfirmOrder({no,total:totalAll,pickup_time,pickup:'self',pay:'揪團',items:allItems});
+              setCart([]); setGroupRoom(null); setTab('confirm');
+            } else { showToast('❌ 結帳失敗：'+error.message); }
+          }}
+            style={{width:'100%',padding:14,background:'var(--org)',color:'#fff',border:'none',borderRadius:12,fontSize:16,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
+            確認送出團購訂單
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if(cart.length===0) return(
     <div className="cart-page" style={{paddingTop:20}}>
       <div className="empty-cart">
@@ -573,32 +865,53 @@ function CartPage({cart,setCart,setTab,setConfirmOrder,showToast}){
 
         {/* 取餐時間選擇 */}
         <div style={{marginBottom:16}}>
-          <div className="pay-section-title" style={{marginBottom:10}}>
+          <div className="pay-section-title" style={{marginBottom:4}}>
             {pickup==='self'?'🕐 選擇取餐時間':'🛵 選擇外送時間'}
-            <span style={{fontSize:12,color:'var(--muted)',fontWeight:400,marginLeft:6}}>
-              （最早 {pickup==='self'?'15':'40'} 分鐘後）
-            </span>
+          </div>
+          <div style={{fontSize:12,color:'var(--muted)',marginBottom:10}}>
+            營業時間 07:30–20:30 · 最早 {pickup==='self'?'15':'40'} 分鐘後
           </div>
           {slots.length===0
-            ? <div style={{fontSize:13,color:'var(--muted)'}}>今日已無可選時段</div>
-            : <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-                {slots.map((s,i)=>{
-                  const label=s.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
-                  const sel=pickupTime&&s.getTime()===pickupTime.getTime();
-                  return(
-                    <div key={i} onClick={()=>setPickupTime(s)}
-                      style={{padding:'10px 16px',border:`1.5px solid ${sel?'var(--org)':'var(--border)'}`,borderRadius:8,
-                        fontSize:15,fontWeight:sel?700:400,color:sel?'var(--org)':'var(--text)',
-                        background:sel?'var(--org-light)':'#fff',cursor:'pointer',transition:'all .12s'}}>
-                      {label}
-                    </div>
-                  );
-                })}
+            ? <div style={{background:'#f5f5f5',borderRadius:10,padding:16,textAlign:'center',fontSize:13,color:'var(--muted)'}}>
+                今日已無可選時段（營業至 20:30）
+              </div>
+            : <div style={{overflowX:'auto',WebkitOverflowScrolling:'touch',paddingBottom:6}}
+                className="time-scroll-hide">
+                <div style={{display:'flex',gap:8,width:'max-content',padding:'4px 2px'}}>
+                  {slots.map((s,i)=>{
+                    const label=s.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+                    const sel=pickupTime&&s.getTime()===pickupTime.getTime();
+                    return(
+                      <button key={i} onClick={()=>setPickupTime(s)}
+                        style={{
+                          flexShrink:0,
+                          padding:'10px 14px',
+                          border:`1.5px solid ${sel?'var(--org)':'#e0e0e0'}`,
+                          borderRadius:10,
+                          fontSize:14,fontWeight:sel?700:400,
+                          color:sel?'#fff':'var(--text)',
+                          background:sel?'var(--org)':'#fff',
+                          cursor:'pointer',
+                          fontFamily:'inherit',
+                          transition:'all .12s',
+                          whiteSpace:'nowrap',
+                          boxShadow:sel?'0 2px 8px rgba(232,119,34,.3)':'none',
+                        }}>
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
           }
-          {pickupTime&&<div style={{marginTop:10,fontSize:13,color:'var(--muted)'}}>
-            已選：<strong style={{color:'var(--org)'}}>{pickupTime.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}</strong>
-          </div>}
+          {pickupTime&&slots.length>0&&(
+            <div style={{marginTop:8,display:'flex',alignItems:'center',gap:8,background:'var(--org-light)',padding:'8px 12px',borderRadius:8}}>
+              <span style={{fontSize:16}}>✅</span>
+              <span style={{fontSize:13,color:'var(--org)',fontWeight:600}}>
+                已選取餐時間：{pickupTime.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="pay-section-title">支付方式</div>
@@ -611,6 +924,27 @@ function CartPage({cart,setCart,setTab,setConfirmOrder,showToast}){
 
       {/* 會員電話 */}
       <div className="cart-section">
+        {/* 揪團模式：顯示名字輸入 + 儲存按鈕 */}
+        {groupRoom&&(
+          <div style={{background:'#fff3e0',borderRadius:12,padding:16,marginBottom:12,border:'1.5px solid var(--org)'}}>
+            <div style={{fontWeight:700,marginBottom:8,color:'var(--org)'}}>🎉 揪團中：{groupRoom.room_code}</div>
+            <div style={{fontSize:13,color:'var(--muted)',marginBottom:10}}>先輸入你的名字，再把選好的餐儲存到揪團</div>
+            <div style={{display:'flex',gap:8,marginBottom:10}}>
+              <input value={myName} onChange={e=>setMyName(e.target.value)}
+                placeholder="你的名字"
+                style={{flex:1,border:'1.5px solid var(--border)',borderRadius:8,padding:'9px 12px',fontSize:14,fontFamily:'inherit',outline:'none'}}/>
+              <button onClick={saveGroupCart} disabled={savingGroup}
+                style={{padding:'9px 16px',background:'var(--org)',color:'#fff',border:'none',borderRadius:8,fontSize:13,fontFamily:'inherit',fontWeight:700,cursor:'pointer',whiteSpace:'nowrap'}}>
+                {savingGroup?'儲存...':'儲存到揪團'}
+              </button>
+            </div>
+            <button onClick={()=>{setShowSummary(true);loadGroupItems();}}
+              style={{width:'100%',padding:10,background:'#1a1a1a',color:'#fff',border:'none',borderRadius:8,fontSize:13,fontFamily:'inherit',fontWeight:600,cursor:'pointer'}}>
+              查看所有人的點餐 →
+            </button>
+          </div>
+        )}
+
         <div className="pay-section-title" style={{marginBottom:6}}>👤 會員電話（選填）</div>
         <div style={{fontSize:12,color:'var(--muted)',marginBottom:10}}>填入電話可累積消費紀錄，享會員優惠</div>
         <div style={{display:'flex',gap:8,alignItems:'center'}}>
@@ -679,16 +1013,26 @@ function ConfirmPage({order,setTab}){
 
 
 /* ── MY PAGE ── */
-function MyPage(){
-  const[phone,setPhone]=useState('');
+function MyPage({globalMember,setGlobalMember}){
+  const[phone,setPhone]=useState(globalMember?.phone||'');
   const[inputPhone,setInputPhone]=useState('');
-  const[customer,setCustomer]=useState(null);
-  const[orders,setOrders]=useState([]);
+  const[customer,setCustomer]=useState(globalMember?.customer||null);
+  const[orders,setOrders]=useState(globalMember?.orders||[]);
   const[loading,setLoading]=useState(false);
   const[subPage,setSubPage]=useState('main');
-  const[editForm,setEditForm]=useState({name:'',gender:'-',phone:''});
+  const[editForm,setEditForm]=useState({name:globalMember?.customer?.name||'',gender:globalMember?.customer?.gender||'-',phone:globalMember?.phone||''});
   const[saving,setSaving]=useState(false);
   const[msg,setMsg]=useState('');
+
+  // 若點餐頁已查詢到會員，直接同步進來
+  useEffect(()=>{
+    if(globalMember&&!customer){
+      setPhone(globalMember.phone);
+      setCustomer(globalMember.customer);
+      setOrders(globalMember.orders||[]);
+      if(globalMember.customer) setEditForm({name:globalMember.customer.name||'',gender:globalMember.customer.gender||'-',phone:globalMember.phone});
+    }
+  },[globalMember]);
 
   async function login(){
     if(!inputPhone.trim()) return;
@@ -700,6 +1044,8 @@ function MyPage(){
     setEditForm({name:c.name||'',gender:c.gender||'-',phone:inputPhone.trim()});
     const{data:od}=await db.from('orders').select('*').eq('member_phone',inputPhone.trim()).order('created_at',{ascending:false}).limit(20);
     setOrders(od||[]);
+    // 同步回全域
+    setGlobalMember&&setGlobalMember({phone:inputPhone.trim(),customer:c,orders:od||[]});
     setLoading(false);
   }
 
@@ -707,6 +1053,7 @@ function MyPage(){
     setSaving(true);
     await db.from('customers').update({name:editForm.name,gender:editForm.gender}).eq('phone',phone);
     setCustomer(c=>({...c,name:editForm.name,gender:editForm.gender}));
+    setGlobalMember&&setGlobalMember(g=>g?{...g,customer:{...g.customer,name:editForm.name,gender:editForm.gender}}:g);
     setSaving(false); setSubPage('main');
   }
 
@@ -1067,7 +1414,7 @@ function MyPage(){
         ))}
       </div>
 
-      <button onClick={()=>{setCustomer(null);setPhone('');setInputPhone('');setOrders([]);setSubPage('main');}}
+      <button onClick={()=>{setCustomer(null);setPhone('');setInputPhone('');setOrders([]);setSubPage('main');setGlobalMember&&setGlobalMember(null);}}
         style={{width:'calc(100% - 32px)',margin:'0 16px',padding:14,background:'#fff',border:'1px solid #e0e0e0',borderRadius:12,fontSize:14,fontFamily:'inherit',fontWeight:600,cursor:'pointer',color:'#888'}}>
         登出
       </button>
