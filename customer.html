@@ -11,375 +11,769 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --org:#E87722;--org-dark:#C45E0A;--org-light:#FFF3E8;
-  --bg:#F5F5F5;--white:#fff;--text:#1a1a1a;--muted:#888;--border:#E8E8E8;
-  --red:#E53935;--nav-h:64px;--top-h:52px;
-}
+:root{--org:#E87722;--org-dark:#C45E0A;--org-light:#FFF3E8;--bg:#F5F5F5;--white:#fff;--text:#1a1a1a;--muted:#888;--border:#E8E8E8;--red:#E53935;--nav-h:64px;--top-h:52px;}
 html,body{height:100%;background:#f0ede8}
 body{font-family:'Noto Sans TC',sans-serif;color:var(--text);max-width:420px;margin:0 auto;background:var(--white);position:relative;min-height:100vh}
 #root{display:flex;flex-direction:column;min-height:100vh}
-
-/* NAV */
 .top-bar{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;z-index:100;background:var(--white);border-bottom:1px solid var(--border);height:var(--top-h);display:flex;align-items:center;padding:0 16px;justify-content:space-between}
 .top-bar h1{font-size:17px;font-weight:700}
-.top-bar .back{font-size:20px;cursor:pointer;padding:4px 8px 4px 0;color:var(--text)}
+.back{font-size:20px;cursor:pointer;padding:4px 8px 4px 0;color:var(--text)}
 .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:var(--white);border-top:1px solid var(--border);display:flex;height:var(--nav-h);z-index:100}
 .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;font-size:11px;color:var(--muted);border:none;background:none;font-family:inherit;transition:color .15s}
 .nav-btn.active{color:var(--org)}
 .nav-btn .ni{font-size:22px}
-.page-wrap{padding-top:var(--top-h);padding-bottom:var(--nav-h);min-height:100vh;background:var(--bg)}
-
-/* HOME */
-.banner{width:100%;display:block;background:var(--org);position:relative;overflow:hidden;border-radius:12px;margin:12px 0}
-.banner-inner{padding:20px;color:#fff}
-.banner-inner .tag-row{display:flex;gap:6px;margin-bottom:8px}
-.banner-tag{background:rgba(255,255,255,0.25);color:#fff;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
-.banner-inner h2{font-size:22px;font-weight:900;line-height:1.2;margin-bottom:4px}
-.banner-price{font-size:32px;font-weight:900;position:absolute;top:16px;right:20px}
+.page-wrap{padding-top:var(--top-h);padding-bottom:calc(var(--nav-h) + 4px);min-height:100vh;background:var(--bg)}
 .section-title{font-size:17px;font-weight:700;color:var(--org);margin-bottom:10px}
 .store-card{background:var(--white);border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06)}
-.store-img{width:100%;height:180px;object-fit:cover;background:#ddd;display:flex;align-items:center;justify-content:center;font-size:40px}
-.store-info{padding:14px 16px}
-.store-name{font-size:18px;font-weight:700;margin-bottom:4px}
-.store-meta{font-size:13px;color:var(--muted)}
-.launch-btn{width:calc(100% - 32px);margin:16px;padding:18px;background:var(--org);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:700;font-family:inherit;cursor:pointer;display:block}
+.store-img{width:100%;height:140px;background:#ddd;display:flex;align-items:center;justify-content:center;font-size:50px}
+.store-info{padding:12px 16px}
+.store-name{font-size:16px;font-weight:700;margin-bottom:3px}
+.store-meta{font-size:12px;color:var(--muted)}
+.launch-btn{width:calc(100% - 32px);margin:8px 16px 16px;padding:16px;background:var(--org);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;display:block}
 .search-box{display:flex;align-items:center;gap:8px;background:#f0f0f0;border-radius:24px;padding:10px 16px;margin:0 16px 4px}
 .search-box input{flex:1;border:none;background:none;outline:none;font-size:14px;font-family:inherit;color:var(--text)}
-.loc-bar{display:flex;align-items:center;gap:6px;padding:12px 16px 8px;font-size:14px;font-weight:500}
-.loc-bar .arr{color:var(--muted);font-size:12px;margin-left:2px}
-
-/* MENU */
+.loc-bar{display:flex;align-items:center;gap:6px;padding:10px 16px 6px;font-size:14px;font-weight:500}
 .cat-bar{display:flex;border-bottom:2px solid var(--border);background:var(--white);position:sticky;top:var(--top-h);z-index:50;overflow-x:auto}
-.cat-bar::-webkit-scrollbar{display:none}
-.time-scroll-hide::-webkit-scrollbar{display:none}
+.cat-bar::-webkit-scrollbar,.time-scroll-hide::-webkit-scrollbar{display:none}
 .time-scroll-hide{-ms-overflow-style:none;scrollbar-width:none}
 .cat-item{padding:12px 18px;font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
 .cat-item.active{color:var(--org);border-bottom-color:var(--org);font-weight:700}
-.prod-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 16px}
+.prod-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px 16px 80px}
 .prod-card{background:var(--white);border-radius:12px;overflow:hidden;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.06);transition:transform .15s}
 .prod-card:active{transform:scale(.97)}
-.prod-card img{width:100%;height:140px;object-fit:cover;background:#f5f0eb}
-.prod-info{padding:10px 12px 14px}
-.prod-name{font-size:14px;font-weight:600;margin-bottom:4px;line-height:1.3}
-.prod-price{font-size:15px;font-weight:700;color:var(--org)}
-
-/* CUSTOMIZE MODAL */
+.prod-card img{width:100%;height:130px;object-fit:cover;background:#f5f0eb}
+.prod-info{padding:8px 10px 12px}
+.prod-name{font-size:13px;font-weight:600;margin-bottom:3px;line-height:1.3}
+.prod-price{font-size:14px;font-weight:700;color:var(--org)}
 .modal-wrap{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(0,0,0,.45)}
-.modal-sheet{background:var(--white);border-radius:24px 24px 0 0;padding:24px 20px 40px;max-height:90vh;overflow-y:auto}
-.modal-close{position:absolute;top:20px;right:20px;font-size:22px;cursor:pointer;color:var(--muted);background:none;border:none}
-.modal-title{font-size:22px;font-weight:700;margin-bottom:6px}
-.modal-meta{font-size:12px;color:var(--muted);margin-bottom:20px}
-.modal-section{margin-bottom:20px}
-.modal-section-title{font-size:16px;font-weight:700;margin-bottom:10px}
+.modal-sheet{background:var(--white);border-radius:24px 24px 0 0;padding:24px 20px 40px;max-height:90vh;overflow-y:auto;position:relative}
 .opt-chips{display:flex;flex-wrap:wrap;gap:8px}
-.opt-chip{padding:10px 18px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;cursor:pointer;transition:all .12s;background:var(--white);font-family:inherit}
-.opt-chip.sel{border-color:var(--org);color:var(--org);font-weight:600}
-.modal-note{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px;margin-top:12px}
-.add-cart-btn{width:100%;padding:18px;background:var(--org);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:20px}
-
-/* CART */
-.cart-page{padding:0 16px}
+.opt-chip{padding:10px 16px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;cursor:pointer;transition:all .12s;background:var(--white);font-family:inherit}
+.opt-chip.sel{border-color:var(--org);color:var(--org);font-weight:600;background:var(--org-light)}
 .cart-section{background:var(--white);border-radius:12px;padding:16px;margin-bottom:12px}
 .cart-row{display:flex;justify-content:space-between;align-items:flex-start;padding:4px 0}
-.cart-item-name{font-size:15px;font-weight:500}
-.cart-promo{font-size:12px;color:var(--org);margin-top:2px}
-.cart-price{font-size:15px;font-weight:600}
-.divider{border:none;border-top:1px solid var(--border);margin:12px 0}
-.cart-total-row{display:flex;justify-content:space-between;align-items:center}
-.cart-total-label{font-size:16px;font-weight:700}
-.cart-total-price{font-size:20px;font-weight:700}
-.pickup-toggle{display:flex;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px}
-.pickup-btn{flex:1;padding:14px;font-size:14px;font-family:inherit;font-weight:500;background:var(--white);border:none;cursor:pointer;transition:all .15s}
-.pickup-btn.active{background:var(--white);font-weight:700;color:var(--text);box-shadow:inset 0 0 0 2px var(--text)}
-.pay-section-title{font-size:16px;font-weight:700;margin-bottom:12px}
-.pay-chips{display:flex;gap:8px;flex-wrap:wrap}
+.divider{border:none;border-top:1px solid var(--border);margin:10px 0}
 .pay-chip{padding:10px 20px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;cursor:pointer;background:var(--white);font-family:inherit;transition:all .12s}
-.pay-chip.sel{border-color:var(--org);color:var(--org);font-weight:600}
-.checkout-btn{width:100%;padding:18px;background:var(--org);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:4px}
-.empty-cart{text-align:center;padding:60px 20px;color:var(--muted)}
-.empty-cart .ei{font-size:48px;margin-bottom:12px}
-
-/* CONFIRM */
-.confirm-page{padding:0 16px}
-.confirm-section{background:var(--white);border-radius:12px;padding:16px;margin-bottom:12px}
-.confirm-block{background:#f5f5f5;border-radius:10px;padding:14px 16px;margin-bottom:12px;text-align:center}
-.confirm-block-title{font-size:14px;color:var(--muted);margin-bottom:8px;font-weight:500}
-.confirm-block-val{font-size:48px;font-weight:900;color:var(--org);line-height:1}
-.confirm-block-time{font-size:40px;font-weight:900;color:var(--org);line-height:1}
-
-/* MY PAGE */
-.my-page{padding:20px 16px}
-.my-avatar{width:72px;height:72px;background:var(--org);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 12px}
-.my-name{text-align:center;font-size:18px;font-weight:700;margin-bottom:4px}
-.my-sub{text-align:center;font-size:13px;color:var(--muted);margin-bottom:24px}
-.my-card{background:var(--white);border-radius:12px;padding:16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
-.my-card-left{font-size:15px;font-weight:500}
-.my-card-arrow{color:var(--muted);font-size:18px}
-.black-card{background:linear-gradient(135deg,#1a1a1a,#444);color:#fff;border-radius:14px;padding:20px;margin-bottom:12px}
-.black-card-title{font-size:13px;opacity:.7;margin-bottom:4px}
-.black-card-name{font-size:20px;font-weight:700;margin-bottom:16px}
-.black-card-pts{font-size:28px;font-weight:900;color:var(--org)}
-.black-card-pts-label{font-size:12px;opacity:.6;margin-top:2px}
-
-/* TOAST */
-.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:12px 24px;border-radius:24px;font-size:13px;z-index:999;white-space:nowrap;animation:fi .2s}
+.pay-chip.sel{border-color:var(--org);color:var(--org);font-weight:600;background:var(--org-light)}
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.step-dot.done,.step-dot.active{background:var(--org);color:#fff}
+.step-dot.pending{background:#e0e0e0;color:#888}
+.step-line{flex:1;height:2px;background:#e0e0e0;margin:0 6px}
+.step-line.done{background:var(--org)}
+.step-label{font-size:10px;text-align:center;margin-top:4px;white-space:nowrap}
+.order-info-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.order-info-row:last-child{border-bottom:none}
+.order-no-bar{background:var(--org);color:#fff;border-radius:8px;padding:10px 16px;font-size:16px;font-weight:700;margin-bottom:14px}
+.member-block{background:var(--white);border-radius:12px;margin-bottom:10px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:12px 24px;border-radius:24px;font-size:13px;z-index:999;white-space:nowrap;animation:fi .2s;pointer-events:none}
 @keyframes fi{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-
-.pad16{padding:0 16px}
-.mt12{margin-top:12px}
 .loading{display:flex;align-items:center;justify-content:center;padding:60px;flex-direction:column;gap:10px;color:var(--muted)}
 .spin{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--org);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+/* 揪團 group bar */
+.group-bar{position:fixed;bottom:64px;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:#fff;border-top:2px solid var(--org);padding:8px 12px;z-index:99;box-shadow:0 -2px 10px rgba(0,0,0,.08)}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const {useState,useEffect,useRef} = React;
-const db = supabase.createClient(
+const {useState,useEffect,useRef,useCallback,useMemo}=React;
+const db=supabase.createClient(
   'https://rvkfhetfdgsjmapztocd.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2a2ZoZXRmZGdzam1hcHp0b2NkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMTA1NjcsImV4cCI6MjA5NTc4NjU2N30.4oBlbOX62v4AZJdpcG21NqBLa3IBMiv9-2WMmMU_8kU'
 );
+const FOOD_CATS=['輕食','甜點'];
+const STORES=[
+  {id:1,name:'路易莎 逢甲大學店',short:'逢甲大學店',addr:'台中市西屯區文華路100號',phone:'04-24523131',dist:'2.1'},
+  {id:2,name:'路易莎 新大墩向心店',short:'新大墩向心店',addr:'台中市南屯區大墩路301號',phone:'04-24726613',dist:'3.4'},
+  {id:3,name:'路易莎 台中一中店',short:'台中一中店',addr:'台中市北區育才街100號',phone:'04-22220000',dist:'4.2'},
+  {id:4,name:'路易莎 中港路店',short:'中港路店',addr:'台中市西屯區中港路二段100號',phone:'04-23171234',dist:'1.8'},
+  {id:5,name:'路易莎 公益路店',short:'公益路店',addr:'台中市西區公益路168號',phone:'04-23019999',dist:'5.1'},
+];
 
 function useToast(){
   const[t,setT]=useState(null);
-  useEffect(()=>{if(t){const id=setTimeout(()=>setT(null),2200);return()=>clearTimeout(id)}},[t]);
-  return[setT, t?<div className="toast">{t}</div>:null];
+  useEffect(()=>{if(t){const id=setTimeout(()=>setT(null),2300);return()=>clearTimeout(id);}},[t]);
+  return[setT,t?<div className="toast">{t}</div>:null];
 }
 
-/* ── GROUP BOTTOM BAR ── */
-function GroupBottomBar({groupRoom,setTab,showToast,cart,myName,setGroupRoom,setConfirmOrder,setCart}){
-  const[groupItems,setGroupItems]=useState([]);
-  const[expanded,setExpanded]=useState(false);
-  const[checkingOut,setCheckingOut]=useState(false);
+function getTimeSlots(mode){
+  const slots=[];const now=new Date();
+  const minMins=mode==='self'?15:40;
+  const earliest=new Date(now.getTime()+minMins*60000);
+  const dayStart=new Date(now);dayStart.setHours(7,30,0,0);
+  const dayEnd=new Date(now);dayEnd.setHours(20,30,0,0);
+  let s=new Date(Math.max(earliest.getTime(),dayStart.getTime()));
+  const m=s.getMinutes();const r=Math.ceil(m/15)*15;
+  s.setMinutes(r>=60?0:r,0,0);if(r>=60)s.setHours(s.getHours()+1);
+  let cur=new Date(s);
+  while(cur<=dayEnd){slots.push(new Date(cur));cur=new Date(cur.getTime()+15*60000);}
+  return slots;
+}
 
-  useEffect(()=>{
-    async function load(){
-      const{data}=await db.from('group_items').select('*').eq('room_code',groupRoom.room_code).order('created_at');
-      setGroupItems((data||[]).filter(m=>(m.items||[]).length>0));
-    }
-    load();
-    const t=setInterval(load,6000);
-    return()=>clearInterval(t);
-  },[groupRoom.room_code]);
+/* ─── CHECKOUT SHEET (3 steps) used in GroupBottomBar ─── */
+function CheckoutSheet({groupRoom,groupItems,currentStore,onClose,showToast,setConfirmOrder,setGroupRoom,setTab}){
+  const[step,setStep]=useState(1);
+  const[pickup,setPickup]=useState('self');
+  const[pay,setPay]=useState('LINE Pay');
+  const[name,setName]=useState(groupRoom.creator_name||'');
+  const[phone,setPhone]=useState('');
+  const[invType,setInvType]=useState('mobile');
+  const[carrier,setCarrier]=useState('');
+  const[taxId,setTaxId]=useState('');
+  const[loading,setLoading]=useState(false);
+  const[expanded,setExpanded]=useState({});
+  const[pickupTime,setPickupTime]=useState(()=>getTimeSlots('self')[0]||new Date());
+  const slots=useMemo(()=>getTimeSlots(pickup),[pickup]);
 
   const totalAll=groupItems.reduce((s,m)=>s+(m.subtotal||0),0);
-  const memberCount=groupItems.length;
+  const totalQty=groupItems.reduce((s,m)=>s+((m.items||[]).reduce((ss,i)=>ss+(i.qty||1),0)),0);
 
-  async function doGroupCheckout(){
-    setCheckingOut(true);
+  function switchPickup(v){setPickup(v);const ns=getTimeSlots(v);if(ns.length)setPickupTime(ns[0]);}
+  function toggleMember(id){setExpanded(e=>({...e,[id]:!e[id]}));}
+
+  async function doCheckout(){
+    if(!name.trim()){showToast('請填寫取貨人姓名');return;}
+    if(!phone.trim()){showToast('請填寫聯絡電話');return;}
+    if(!pickupTime){showToast('請選擇取餐時間');return;}
+    setLoading(true);
     const allItems=[];
     groupItems.forEach(m=>(m.items||[]).forEach(i=>allItems.push({...i,member:m.member_name})));
-    const no='GP-'+(1000+Math.floor(Math.random()*9000));
-    const pickup_time=new Date(Date.now()+15*60000).toISOString();
-    const{error}=await db.from('orders').insert([{
-      order_no:no, items:allItems, total:totalAll,
-      payment_method:'揪團結帳', status:'paid', pickup_time,
-    }]);
+    const no='M'+Math.floor(1000000000+Math.random()*9000000000);
+    const insertData={
+      order_no:no,
+      items:allItems,
+      total:totalAll,
+      payment_method:pay,
+      status:'paid',
+      pickup_time:pickupTime.toISOString(),
+      member_phone:phone||null,
+      recipient_name:name,
+    };
+    if(invType) insertData.inv_type=invType;
+    if(invType==='mobile'&&carrier) insertData.mobile_carrier=carrier;
+    if(taxId) insertData.tax_id=taxId;
+    const{error}=await db.from('orders').insert([insertData]);
     await db.from('group_orders').update({status:'closed'}).eq('room_code',groupRoom.room_code);
-    setCheckingOut(false);
+    setLoading(false);
     if(!error){
-      setConfirmOrder({no,total:totalAll,pickup_time,pickup:'self',pay:'揪團',items:allItems,isGroup:true,groupItems});
-      setCart([]); setGroupRoom(null); setTab('confirm');
-    } else { showToast('❌ 結帳失敗：'+error.message); }
+      setConfirmOrder({
+        no,total:totalAll,pickup_time:pickupTime.toISOString(),pickup,pay,items:allItems,
+        isGroup:true,groupItems,recipientName:name,phone,invType,mobileCarrier:carrier,taxId,
+        storeName:currentStore.name,storePhone:currentStore.phone,storeAddr:currentStore.addr,
+      });
+      setGroupRoom(null);onClose();setTab('confirm');
+    } else showToast('❌ 結帳失敗：'+error.message);
+  }
+
+  const inp={width:'100%',border:'1.5px solid var(--border)',borderRadius:10,padding:'12px 14px',fontSize:15,fontFamily:'inherit',outline:'none',display:'block'};
+  const focIn=e=>e.target.style.borderColor='var(--org)';
+  const focOut=e=>e.target.style.borderColor='var(--border)';
+
+  return(
+    <div className="modal-wrap" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div style={{background:'var(--bg)',borderRadius:'24px 24px 0 0',maxHeight:'93vh',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+        {/* header */}
+        <div style={{background:'#fff',borderRadius:'24px 24px 0 0',padding:'16px 20px 0',flexShrink:0}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+            <div style={{fontWeight:700,fontSize:16}}>LOUISA COFFEE</div>
+            <button onClick={onClose} style={{background:'none',border:'none',fontSize:22,cursor:'pointer',color:'#aaa'}}>✕</button>
+          </div>
+          <div style={{display:'flex',alignItems:'flex-start',paddingBottom:12}}>
+            {[{n:1,l:'確認明細'},{n:2,l:'取餐資訊'},{n:3,l:'付款確認'}].map((s,i,arr)=>(
+              <React.Fragment key={s.n}>
+                <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,minWidth:56}}>
+                  <div className={`step-dot ${step>s.n?'done':step===s.n?'active':'pending'}`}>{s.n}</div>
+                  <div className="step-label" style={{color:step>=s.n?'var(--org)':'#aaa',fontWeight:step===s.n?700:400}}>{s.l}</div>
+                </div>
+                {i<arr.length-1&&<div className={`step-line ${step>s.n?'done':''}`} style={{marginTop:14}}/>}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+
+        <div style={{overflowY:'auto',flex:1,padding:'12px 16px 28px'}}>
+
+          {/* STEP 1 確認明細 */}
+          {step===1&&<div>
+            <div style={{background:'var(--org)',borderRadius:12,padding:'14px 18px',display:'flex',justifyContent:'space-between',alignItems:'center',color:'#fff',marginBottom:12}}>
+              <div style={{display:'flex',alignItems:'center',gap:8}}>
+                <span style={{background:'rgba(255,255,255,.3)',borderRadius:6,padding:'4px 10px',fontWeight:700}}>{totalQty} 份</span>
+                <span style={{fontWeight:700,fontSize:15}}>應付金額</span>
+              </div>
+              <span style={{fontSize:22,fontWeight:900}}>NT${totalAll}</span>
+            </div>
+            {groupItems.length===0&&<div style={{textAlign:'center',padding:'30px 0',color:'var(--muted)',fontSize:14}}>還沒有人點餐</div>}
+            {groupItems.map(member=>{
+              const cnt=(member.items||[]).reduce((s,i)=>s+(i.qty||1),0);
+              const open=expanded[member.id];
+              return(
+                <div key={member.id} className="member-block">
+                  <div onClick={()=>toggleMember(member.id)} style={{display:'flex',alignItems:'center',gap:12,padding:'14px 16px',cursor:'pointer'}}>
+                    <div style={{width:40,height:40,borderRadius:'50%',background:'var(--org)',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,fontWeight:700,flexShrink:0}}>{(member.member_name||'?')[0]}</div>
+                    <div style={{flex:1}}><div style={{fontWeight:700,fontSize:14}}>{member.member_name}</div><div style={{fontSize:12,color:'var(--muted)',marginTop:2}}>NT${member.subtotal||0} / {cnt}份</div></div>
+                    <span style={{fontSize:16,color:'var(--org)',transform:open?'rotate(180deg)':'none',transition:'transform .2s',display:'inline-block'}}>⌄</span>
+                  </div>
+                  {open&&<div style={{background:'#f9f9f9',padding:'0 16px 12px'}}>
+                    {(member.items||[]).map((item,idx)=>(
+                      <div key={idx} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderTop:'1px solid #eee'}}>
+                        <div><div style={{fontWeight:600,fontSize:13}}>{item.name}</div>
+                          <div style={{fontSize:11,color:'var(--muted)'}}>{item.opts&&!item.isFood&&[item.opts.spec,item.opts.sugar,item.opts.milk].filter(Boolean).join(' / ')}</div>
+                        </div>
+                        <div style={{textAlign:'right',flexShrink:0,marginLeft:8}}>
+                          <div style={{fontSize:13,fontWeight:600,color:'var(--org)'}}>NT${(item.price||0)*(item.qty||1)}</div>
+                          <div style={{fontSize:11,color:'var(--muted)'}}>{item.qty||1}份</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>}
+                </div>
+              );
+            })}
+            <button onClick={()=>{const allOpen=groupItems.every(m=>expanded[m.id]);const n={};if(!allOpen)groupItems.forEach(m=>n[m.id]=true);setExpanded(n);}}
+              style={{width:'100%',padding:'11px',background:'#fff',border:'1.5px solid var(--border)',borderRadius:20,fontSize:13,fontFamily:'inherit',color:'var(--muted)',cursor:'pointer',marginTop:6,marginBottom:12}}>
+              {groupItems.every(m=>expanded[m.id])?'收合所有訂單 ⌃':'展開所有訂單 ⌄'}
+            </button>
+            <button onClick={()=>setStep(2)} disabled={groupItems.length===0}
+              style={{width:'100%',padding:15,background:groupItems.length===0?'#ccc':'var(--org)',color:'#fff',border:'none',borderRadius:12,fontSize:15,fontFamily:'inherit',fontWeight:700,cursor:groupItems.length===0?'not-allowed':'pointer'}}>
+              下一步 →
+            </button>
+          </div>}
+
+          {/* STEP 2 取貨人/電話 */}
+          {step===2&&<div>
+            <div className="cart-section">
+              <div style={{fontWeight:700,fontSize:15,marginBottom:12}}>取貨人姓名</div>
+              <input style={inp} value={name} onChange={e=>setName(e.target.value)} placeholder="例：陳小明" onFocus={focIn} onBlur={focOut}/>
+            </div>
+            <div className="cart-section">
+              <div style={{fontWeight:700,fontSize:15,marginBottom:8}}>聯絡電話</div>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+                <div style={{width:14,height:14,borderRadius:'50%',border:'2px solid var(--org)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                  <div style={{width:7,height:7,borderRadius:'50%',background:'var(--org)'}}/>
+                </div>
+                <span style={{fontSize:13}}>手機號碼</span>
+              </div>
+              <input style={inp} value={phone} onChange={e=>setPhone(e.target.value)} placeholder="0912345678" onFocus={focIn} onBlur={focOut}/>
+              <div style={{fontSize:11,color:'var(--muted)',marginTop:5,textAlign:'right'}}>只支援台灣手機號碼</div>
+            </div>
+            <div className="cart-section">
+              <div style={{fontWeight:700,fontSize:15,marginBottom:8}}>給店家留言</div>
+              <div style={{border:'1.5px solid var(--border)',borderRadius:10,padding:'12px 14px',fontSize:13,color:'var(--muted)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <span>可留備用電話供店家聯繫</span><span style={{color:'var(--org)'}}>›</span>
+              </div>
+            </div>
+            <div style={{display:'flex',gap:8}}>
+              <button onClick={()=>setStep(1)} style={{flex:1,padding:14,background:'#fff',border:'1.5px solid var(--border)',borderRadius:12,fontSize:14,fontFamily:'inherit',fontWeight:600,cursor:'pointer'}}>上一步</button>
+              <button onClick={()=>{if(!name.trim()){showToast('請填寫取貨人姓名');return;}if(!phone.trim()){showToast('請填寫聯絡電話');return;}setStep(3);}}
+                style={{flex:2,padding:14,background:'var(--org)',color:'#fff',border:'none',borderRadius:12,fontSize:15,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>下一步 →</button>
+            </div>
+          </div>}
+
+          {/* STEP 3 取餐方式/時間/付款/發票 */}
+          {step===3&&<div>
+            {/* 取貨方式 */}
+            <div className="cart-section">
+              <div style={{fontWeight:700,fontSize:15,marginBottom:10}}>取貨方式</div>
+              <div style={{display:'flex',gap:10,marginBottom:10}}>
+                {[{v:'self',l:'自取'},{v:'delivery',l:'外送'}].map(o=>(
+                  <button key={o.v} onClick={()=>switchPickup(o.v)}
+                    style={{flex:1,padding:'11px',border:`1.5px solid ${pickup===o.v?'var(--org)':'var(--border)'}`,borderRadius:10,background:pickup===o.v?'var(--org-light)':'#fff',color:pickup===o.v?'var(--org)':'var(--text)',fontFamily:'inherit',fontSize:13,cursor:'pointer',fontWeight:pickup===o.v?700:400}}>
+                    {o.l}
+                  </button>
+                ))}
+              </div>
+              {pickup==='self'&&<div style={{background:'#f5f5f5',borderRadius:8,padding:'9px 12px',fontSize:12,color:'#555',display:'flex',alignItems:'center',gap:6}}>
+                <span>📍</span><span>{currentStore.addr}</span>
+              </div>}
+            </div>
+            {/* 取餐時間 */}
+            <div className="cart-section">
+              <div style={{fontWeight:700,fontSize:15,marginBottom:4}}>預計取貨時間</div>
+              <div style={{fontSize:12,color:'var(--muted)',marginBottom:8}}>取貨時間會依門市現場狀況調整</div>
+              {slots.length===0
+                ?<div style={{background:'#f5f5f5',borderRadius:8,padding:12,textAlign:'center',fontSize:13,color:'var(--muted)'}}>今日已無可選時段</div>
+                :<div style={{overflowX:'auto',WebkitOverflowScrolling:'touch',paddingBottom:4}} className="time-scroll-hide">
+                  <div style={{display:'flex',gap:8,width:'max-content',padding:'2px'}}>
+                    {slots.map((s,i)=>{const label=s.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});const sel=pickupTime&&s.getTime()===pickupTime.getTime();return(
+                      <button key={i} onClick={()=>setPickupTime(s)}
+                        style={{flexShrink:0,padding:'9px 13px',border:`1.5px solid ${sel?'var(--org)':'#e0e0e0'}`,borderRadius:10,fontSize:13,fontWeight:sel?700:400,color:sel?'#fff':'var(--text)',background:sel?'var(--org)':'#fff',cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}}>
+                        {label}
+                      </button>
+                    );})}
+                  </div>
+                </div>
+              }
+              {pickupTime&&<div style={{marginTop:8,background:'#f5f5f5',borderRadius:8,padding:'9px 13px',display:'flex',alignItems:'center',gap:8}}>
+                <span style={{background:'#FFF3E8',borderRadius:6,padding:'2px 8px',fontSize:12,color:'var(--org)',fontWeight:700}}>預約</span>
+                <span style={{fontSize:13,fontWeight:600}}>{pickupTime.toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'-')} {pickupTime.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}</span>
+                <span style={{color:'var(--org)',marginLeft:'auto'}}>›</span>
+              </div>}
+            </div>
+            {/* 支付方式 */}
+            <div className="cart-section">
+              <div style={{fontWeight:700,fontSize:15,marginBottom:10}}>支付方式</div>
+              <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                {['LINE Pay','信用卡'].map(m=>(
+                  <div key={m} className={`pay-chip${pay===m?' sel':''}`} onClick={()=>setPay(m)}>{m}</div>
+                ))}
+              </div>
+            </div>
+            {/* 發票 */}
+            <div className="cart-section">
+              <div style={{fontWeight:700,fontSize:15,marginBottom:10}}>🧾 發票設定</div>
+              <div style={{display:'flex',gap:8,marginBottom:10}}>
+                {[{v:'mobile',l:'手機載具'},{v:'paper',l:'紙本發票'},{v:'donate',l:'愛心捐贈'}].map(o=>(
+                  <button key={o.v} onClick={()=>setInvType(o.v)}
+                    style={{flex:1,padding:'9px 2px',border:`1.5px solid ${invType===o.v?'var(--org)':'var(--border)'}`,borderRadius:8,fontSize:11,background:invType===o.v?'var(--org-light)':'#fff',color:invType===o.v?'var(--org)':'var(--text)',fontFamily:'inherit',cursor:'pointer',fontWeight:invType===o.v?700:400}}>
+                    {o.l}
+                  </button>
+                ))}
+              </div>
+              {invType==='mobile'&&(
+                <input value={carrier} onChange={e=>setCarrier(e.target.value.toUpperCase())} placeholder="/TS9EZ5L"
+                  style={{width:'100%',border:'1.5px solid var(--border)',borderRadius:8,padding:'10px 14px',fontSize:14,fontFamily:'monospace',outline:'none',marginBottom:8,display:'block'}}
+                  onFocus={e=>e.target.style.borderColor='var(--org)'} onBlur={e=>e.target.style.borderColor='var(--border)'}/>
+              )}
+              {invType==='donate'&&<div style={{fontSize:12,color:'var(--muted)',padding:'7px 10px',background:'#f5f5f5',borderRadius:8,marginBottom:8}}>發票將捐贈給社福機構，感謝您的愛心 ❤️</div>}
+              <div style={{marginTop:4}}>
+                <div style={{fontSize:12,color:'var(--muted)',marginBottom:5}}>統一編號（公司戶選填）</div>
+                <input value={taxId} onChange={e=>setTaxId(e.target.value.replace(/\D/g,'').slice(0,8))} placeholder="輸入8位數統一編號"
+                  style={{width:'100%',border:'1.5px solid var(--border)',borderRadius:8,padding:'10px 14px',fontSize:14,fontFamily:'inherit',outline:'none',display:'block'}}
+                  onFocus={e=>e.target.style.borderColor='var(--org)'} onBlur={e=>e.target.style.borderColor='var(--border)'}/>
+              </div>
+            </div>
+            {/* 總金額確認 */}
+            <div style={{background:'var(--org)',borderRadius:12,padding:'13px 18px',display:'flex',justifyContent:'space-between',alignItems:'center',color:'#fff',marginBottom:12}}>
+              <div style={{display:'flex',alignItems:'center',gap:8}}>
+                <span style={{background:'rgba(255,255,255,.3)',borderRadius:6,padding:'3px 8px',fontWeight:700,fontSize:13}}>{totalQty} 份</span>
+                <span style={{fontWeight:700,fontSize:14}}>應付金額</span>
+              </div>
+              <span style={{fontSize:20,fontWeight:900}}>NT${totalAll}</span>
+            </div>
+            <div style={{display:'flex',gap:8}}>
+              <button onClick={()=>setStep(2)} style={{flex:1,padding:14,background:'#fff',border:'1.5px solid var(--border)',borderRadius:12,fontSize:14,fontFamily:'inherit',fontWeight:600,cursor:'pointer'}}>上一步</button>
+              <button onClick={doCheckout} disabled={loading||!pickupTime||slots.length===0}
+                style={{flex:2,padding:14,background:loading||slots.length===0?'#ccc':'var(--org)',color:'#fff',border:'none',borderRadius:12,fontSize:15,fontFamily:'inherit',fontWeight:700,cursor:(loading||slots.length===0)?'not-allowed':'pointer'}}>
+                {loading?'送出中...':'送出訂單'}
+              </button>
+            </div>
+          </div>}
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── GROUP BOTTOM BAR ─── */
+function GroupBottomBar({groupRoom,myName,currentStore,showToast,setGroupRoom,setConfirmOrder,setTab}){
+  const[groupItems,setGroupItems]=useState([]);
+  const[showPanel,setShowPanel]=useState(false);
+  const[showCheckout,setShowCheckout]=useState(false);
+
+  const loadItems=useCallback(async()=>{
+    const{data}=await db.from('group_items').select('*').eq('room_code',groupRoom.room_code).order('created_at');
+    setGroupItems((data||[]).filter(m=>(m.items||[]).length>0));
+  },[groupRoom.room_code]);
+
+  useEffect(()=>{loadItems();const t=setInterval(loadItems,4000);return()=>clearInterval(t);},[loadItems]);
+
+  const totalAll=groupItems.reduce((s,m)=>s+(m.subtotal||0),0);
+  const totalQty=groupItems.reduce((s,m)=>s+((m.items||[]).reduce((ss,i)=>ss+(i.qty||1),0)),0);
+  const memberCount=groupItems.length;
+
+  async function openCheckout(){
+    if(memberCount===0){showToast('⚠️ 還沒有人點餐');return;}
+    setShowPanel(false);
+    setShowCheckout(true);
+  }
+
+  // 非主揪：只顯示等待主揪結帳
+  if(!groupRoom.isCreator){
+    return(
+      <div className="group-bar">
+        <div style={{textAlign:'center',fontSize:13,color:'var(--muted)',padding:'4px 0'}}>
+          🎉 揪團中 <strong style={{color:'var(--org)'}}>{groupRoom.room_code}</strong> · 等待主揪 <strong>{groupRoom.creator_name}</strong> 結帳
+        </div>
+      </div>
+    );
   }
 
   return(
     <>
-      {/* 展開的成員清單 overlay */}
-      {expanded&&(
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.45)',zIndex:200,display:'flex',flexDirection:'column',justifyContent:'flex-end'}}
-          onClick={()=>setExpanded(false)}>
-          <div onClick={e=>e.stopPropagation()} style={{background:'#fff',borderRadius:'20px 20px 0 0',maxHeight:'75vh',overflow:'hidden',display:'flex',flexDirection:'column'}}>
-            {/* 標題 */}
+      {/* 主揪：兩個按鈕 */}
+      <div className="group-bar">
+        <div style={{display:'flex',gap:8}}>
+          <button onClick={()=>setShowPanel(true)}
+            style={{flex:1,padding:'9px 8px',background:'#f5f5f5',border:'1.5px solid var(--border)',borderRadius:10,fontSize:12,fontFamily:'inherit',fontWeight:600,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:5}}>
+            <span>👥 團員點過</span>
+            {memberCount>0&&<span style={{background:'var(--org)',color:'#fff',borderRadius:10,padding:'1px 7px',fontSize:11,fontWeight:700}}>{memberCount}</span>}
+          </button>
+          <button onClick={openCheckout}
+            style={{flex:1,padding:'9px 8px',background:'var(--org)',border:'none',borderRadius:10,fontSize:12,fontFamily:'inherit',fontWeight:700,cursor:'pointer',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',gap:4}}>
+            🛒 一般商品結帳
+          </button>
+        </div>
+      </div>
+
+      {/* 團員點過 Panel */}
+      {showPanel&&(
+        <div className="modal-wrap" onClick={()=>setShowPanel(false)}>
+          <div onClick={e=>e.stopPropagation()} style={{background:'#fff',borderRadius:'20px 20px 0 0',maxHeight:'80vh',display:'flex',flexDirection:'column'}}>
             <div style={{padding:'16px 20px',borderBottom:'1px solid #f0f0f0',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
-              <div style={{fontWeight:700,fontSize:16}}>購物內容</div>
-              <button onClick={()=>setExpanded(false)} style={{background:'none',border:'none',fontSize:20,cursor:'pointer',color:'#aaa'}}>✕</button>
+              <div style={{fontWeight:700,fontSize:16}}>👥 團員點過的品項</div>
+              <button onClick={()=>setShowPanel(false)} style={{background:'none',border:'none',fontSize:22,cursor:'pointer',color:'#aaa'}}>✕</button>
             </div>
-            {/* 成員列表 */}
-            <div style={{overflowY:'auto',flex:1,padding:'8px 0 120px'}}>
+            <div style={{overflowY:'auto',flex:1,padding:'8px 0 20px'}}>
               {memberCount===0
-                ? <div style={{textAlign:'center',padding:'40px 20px',color:'#aaa',fontSize:14}}>還沒有人點餐</div>
-                : <MemberOrderList groupItems={groupItems} showToast={showToast} groupRoom={groupRoom} onRefresh={async()=>{
-                    const{data}=await db.from('group_items').select('*').eq('room_code',groupRoom.room_code).order('created_at');
-                    setGroupItems((data||[]).filter(m=>(m.items||[]).length>0));
-                  }}/>
+                ?<div style={{textAlign:'center',padding:'40px 20px',color:'#aaa',fontSize:14}}>還沒有人點餐</div>
+                :groupItems.map(member=>{
+                  const cnt=(member.items||[]).reduce((s,i)=>s+(i.qty||1),0);
+                  return(
+                    <div key={member.id} style={{borderBottom:'1px solid #f0f0f0'}}>
+                      <div style={{display:'flex',alignItems:'center',gap:12,padding:'12px 20px',background:'#fff'}}>
+                        <div style={{width:44,height:44,borderRadius:'50%',background:'var(--org)',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,fontWeight:700}}>{(member.member_name||'?')[0]}</div>
+                        <div style={{flex:1}}><div style={{fontWeight:700,fontSize:15}}>{member.member_name}</div><div style={{fontSize:12,color:'var(--muted)',marginTop:1}}>NT${member.subtotal||0} / {cnt}份</div></div>
+                      </div>
+                      <div style={{background:'#f8f8f8',padding:'0 20px 10px'}}>
+                        {(member.items||[]).map((item,idx)=>(
+                          <div key={idx} style={{display:'flex',justifyContent:'space-between',padding:'7px 0',borderTop:'1px solid #eee'}}>
+                            <div>
+                              <div style={{fontWeight:600,fontSize:13}}>{item.name}</div>
+                              <div style={{fontSize:11,color:'var(--muted)'}}>{item.opts&&!item.isFood&&[item.opts.spec,item.opts.sugar,item.opts.milk].filter(Boolean).join(' / ')}</div>
+                            </div>
+                            <div style={{textAlign:'right',flexShrink:0,marginLeft:8}}>
+                              <div style={{fontSize:13,fontWeight:600,color:'var(--org)'}}>NT${(item.price||0)*(item.qty||1)}</div>
+                              <div style={{fontSize:11,color:'var(--muted)'}}>{item.qty||1}份</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })
               }
             </div>
-            {/* 底部金額+結帳 */}
-            <div style={{position:'absolute',bottom:0,left:0,right:0,background:'#fff',borderTop:'1px solid #f0f0f0',padding:'12px 20px 24px'}}>
-              <div style={{display:'flex',justifyContent:'space-between',marginBottom:10,fontWeight:700,fontSize:16}}>
-                <span>團購總金額</span>
-                <span style={{color:'var(--org)'}}>NT$ {totalAll}</span>
+            <div style={{padding:'12px 20px 24px',borderTop:'1px solid #f0f0f0',flexShrink:0}}>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:10,fontWeight:700,fontSize:15}}>
+                <span>團購總金額</span><span style={{color:'var(--org)'}}>NT${totalAll}</span>
               </div>
-              {groupRoom.isCreator
-                ? <button onClick={doGroupCheckout} disabled={checkingOut||groupItems.length===0}
-                    style={{width:'100%',padding:14,background:groupItems.length===0?'#ccc':'var(--org)',color:'#fff',border:'none',borderRadius:12,fontSize:16,fontFamily:'inherit',fontWeight:700,cursor:groupItems.length===0?'not-allowed':'pointer'}}>
-                    {checkingOut?'結帳中...':'一般商品結帳 →'}
-                  </button>
-                : <div style={{textAlign:'center',padding:'10px',background:'#f5f5f5',borderRadius:10,fontSize:13,color:'var(--muted)'}}>
-                    等待主揪 {groupRoom.creator_name} 確認後結帳
-                  </div>
-              }
+              <button onClick={openCheckout} disabled={memberCount===0}
+                style={{width:'100%',padding:14,background:memberCount===0?'#ccc':'var(--org)',color:'#fff',border:'none',borderRadius:12,fontSize:15,fontFamily:'inherit',fontWeight:700,cursor:memberCount===0?'not-allowed':'pointer'}}>
+                一般商品結帳 →
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 底部固定條 */}
-      <div style={{position:'fixed',bottom:64,left:'50%',transform:'translateX(-50%)',width:'100%',maxWidth:420,background:'#fff',borderTop:'2px solid var(--org)',padding:'10px 16px',zIndex:99,boxShadow:'0 -2px 12px rgba(0,0,0,.08)'}}>
-        {groupRoom.isCreator
-          ? <div style={{display:'flex',gap:8}}>
-              <button onClick={()=>setExpanded(true)}
-                style={{flex:1,padding:'10px 8px',background:'#f5f5f5',border:'1.5px solid var(--border)',borderRadius:10,fontSize:13,fontFamily:'inherit',fontWeight:600,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
-                <span>👥 團員點過</span>
-                {memberCount>0&&<span style={{background:'var(--org)',color:'#fff',borderRadius:10,padding:'1px 8px',fontSize:12,fontWeight:700}}>{memberCount}</span>}
-              </button>
-              <button onClick={()=>setExpanded(true)}
-                style={{flex:1,padding:'10px 8px',background:'var(--org)',border:'none',borderRadius:10,fontSize:13,fontFamily:'inherit',fontWeight:700,cursor:'pointer',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',gap:4}}>
-                一般商品結帳 {totalAll>0&&<span style={{fontSize:12,opacity:.85}}>NT${totalAll}</span>}
-              </button>
-            </div>
-          : <button onClick={()=>setExpanded(true)}
-              style={{width:'100%',padding:'10px',background:'#f5f5f5',border:'1.5px solid var(--border)',borderRadius:10,fontSize:13,fontFamily:'inherit',fontWeight:600,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
-              <span>👥 團員點過</span>
-              {memberCount>0&&<span style={{background:'var(--org)',color:'#fff',borderRadius:10,padding:'1px 8px',fontSize:12,fontWeight:700}}>{memberCount}</span>}
-              <span style={{fontSize:12,color:'var(--muted)',marginLeft:4}}>點我查看 →</span>
-            </button>
-        }
-      </div>
+      {/* 結帳 Sheet */}
+      {showCheckout&&(
+        <CheckoutSheet
+          groupRoom={groupRoom}
+          groupItems={groupItems}
+          currentStore={currentStore}
+          onClose={()=>setShowCheckout(false)}
+          showToast={showToast}
+          setConfirmOrder={setConfirmOrder}
+          setGroupRoom={setGroupRoom}
+          setTab={setTab}
+        />
+      )}
     </>
   );
 }
 
-/* ── MEMBER ORDER LIST (used in GroupBottomBar overlay) ── */
-function MemberOrderList({groupItems,showToast,groupRoom,onRefresh}){
-  const[expanded,setExpanded]=useState({});
-  const toggle=(id)=>setExpanded(p=>({...p,[id]:!p[id]}));
+/* ─── ORDER DETAIL PAGE ─── */
+function OrderDetailPage({order,setTab}){
+  if(!order)return null;
+  const pickup=new Date(order.pickup_time);
+  const no=order.no;
+  const pickupStr=pickup.toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'-')+' '+pickup.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+  const createdStr=new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'-')+' '+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+  const invLabel=order.invType==='mobile'?'手機載具 - '+(order.mobileCarrier||''):order.invType==='paper'?'紙本發票':order.invType==='donate'?'愛心捐贈':'手機載具';
+  const groupItems=order.groupItems||[];
+  const storeName=order.storeName||'路易莎 逢甲大學門市';
+  const storePhone=order.storePhone||'04-24523131';
+  const storeAddr=order.storeAddr||'台中市西屯區文華路100號';
+  const pickupNo=parseInt(no.slice(-3))||Math.floor(100+Math.random()*900);
+
+  function copyNo(){
+    navigator.clipboard.writeText(no).then(()=>{}).catch(()=>{});
+  }
+
+  const rowStyle={display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 0',borderBottom:'1px solid var(--border)'};
+  const labelStyle={fontSize:14,color:'var(--muted)'};
+  const valStyle={fontSize:14,fontWeight:600,textAlign:'right',maxWidth:'58%'};
 
   return(
-    <div>
-      {groupItems.map(member=>{
-        const isOpen=expanded[member.id];
-        const itemCount=(member.items||[]).reduce((s,i)=>s+(i.qty||1),0);
-        return(
-          <div key={member.id} style={{marginBottom:4}}>
-            {/* 成員 header - 點擊展開 */}
-            <div onClick={()=>toggle(member.id)}
-              style={{display:'flex',alignItems:'center',gap:14,padding:'14px 20px',background:'#fff',cursor:'pointer',userSelect:'none'}}>
-              <div style={{width:48,height:48,borderRadius:'50%',background:'var(--org)',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:20,fontWeight:700,flexShrink:0}}>
-                {(member.member_name||'?')[0]}
-              </div>
-              <div style={{flex:1}}>
-                <div style={{fontWeight:700,fontSize:16}}>{member.member_name}</div>
-                <div style={{fontSize:13,color:'var(--muted)',marginTop:2}}>NT${member.subtotal||0} / {itemCount} 份</div>
-              </div>
-              <span style={{fontSize:22,color:'var(--org)',transform:isOpen?'rotate(180deg)':'none',transition:'transform .2s'}}>⌃</span>
-            </div>
-            {/* 展開品項 */}
-            {isOpen&&(
-              <div style={{background:'#f8f8f8',padding:'8px 20px 12px'}}>
-                {(member.items||[]).map((item,idx)=>(
-                  <div key={idx} style={{padding:'10px 0',borderBottom:idx<member.items.length-1?'1px solid #eee':'none',display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
-                    <div style={{flex:1}}>
-                      <div style={{fontWeight:600,fontSize:14}}>{item.name}</div>
-                      <div style={{fontSize:12,color:'var(--muted)',marginTop:2}}>
-                        {item.opts&&!item.isFood&&[item.opts.spec,item.opts.sugar,item.opts.milk].filter(Boolean).join(' / ')}
-                      </div>
-                    </div>
-                    <div style={{textAlign:'right',flexShrink:0,marginLeft:12}}>
-                      <div style={{fontSize:14,fontWeight:600,color:'var(--org)'}}>NT${item.price*(item.qty||1)}</div>
-                      <div style={{fontSize:12,color:'var(--muted)'}}>{item.qty||1} 份</div>
-                    </div>
-                  </div>
-                ))}
-                {/* 收合按鈕 */}
-                <button onClick={()=>toggle(member.id)}
-                  style={{width:'100%',marginTop:10,padding:'8px',background:'#fff',border:'1.5px solid var(--border)',borderRadius:20,fontSize:13,fontFamily:'inherit',color:'var(--muted)',cursor:'pointer'}}>
-                  收合 ⌃
-                </button>
-              </div>
-            )}
+    <div style={{background:'#f5f5f5',minHeight:'100vh',paddingBottom:32}}>
+
+      {/* 門市資訊卡 */}
+      <div style={{background:'#fff',margin:'12px 16px',borderRadius:14,padding:'18px 16px',boxShadow:'0 2px 12px rgba(0,0,0,.07)'}}>
+        {/* 門市 header */}
+        <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:16}}>
+          <div style={{width:60,height:60,borderRadius:'50%',background:'var(--org)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,flexShrink:0,color:'#fff'}}>☕</div>
+          <div style={{flex:1}}>
+            <div style={{fontWeight:700,fontSize:17,marginBottom:5}}>{storeName}</div>
+            <div style={{fontSize:13,color:'var(--org)',marginBottom:2}}>📞 {storePhone}</div>
+            <div style={{fontSize:12,color:'var(--muted)'}}>📍 {storeAddr}</div>
           </div>
-        );
-      })}
+        </div>
+
+        {/* 取貨號橘色大條 */}
+        <div style={{background:'var(--org)',borderRadius:8,padding:'12px 18px',marginBottom:16}}>
+          <span style={{color:'#fff',fontWeight:700,fontSize:17}}>取貨號 - {pickupNo}</span>
+        </div>
+
+        {/* 訂單資訊列 */}
+        <div style={rowStyle}>
+          <span style={labelStyle}>訂單編號</span>
+          <span style={{...valStyle,color:'var(--org)',display:'flex',alignItems:'center',gap:6,cursor:'pointer'}} onClick={copyNo}>
+            {no} <span style={{fontSize:16}}>📋</span>
+          </span>
+        </div>
+        <div style={rowStyle}>
+          <span style={labelStyle}>訂單狀態</span>
+          <span style={{display:'flex',alignItems:'center',gap:8}}>
+            <span style={{background:'#e8f5e9',color:'#2e7d32',padding:'4px 12px',borderRadius:6,fontSize:13,fontWeight:700}}>完成</span>
+            <span style={{fontSize:13,color:'var(--org)',cursor:'pointer'}}>查詢進度</span>
+          </span>
+        </div>
+        <div style={rowStyle}>
+          <span style={labelStyle}>訂單類型</span>
+          <span style={valStyle}>一般商品</span>
+        </div>
+        <div style={rowStyle}>
+          <span style={labelStyle}>預計取貨時間</span>
+          <span style={{...valStyle,color:'var(--org)'}}>{pickupStr}</span>
+        </div>
+        <div style={rowStyle}>
+          <span style={labelStyle}>付款金額</span>
+          <span style={{...valStyle,color:'var(--org)'}}>NT${order.total}</span>
+        </div>
+        <div style={rowStyle}>
+          <span style={labelStyle}>付款方式</span>
+          <span style={valStyle}>{order.pay||'LINE Pay'}</span>
+        </div>
+        <div style={rowStyle}>
+          <span style={labelStyle}>開立發票方式</span>
+          <span style={valStyle}>{invLabel}</span>
+        </div>
+        <div style={rowStyle}>
+          <span style={labelStyle}>取貨方式</span>
+          <span style={valStyle}>{order.pickup==='self'?'自取':'外送'}</span>
+        </div>
+        <div style={rowStyle}>
+          <span style={labelStyle}>取貨人</span>
+          <span style={valStyle}>{order.recipientName||'-'}</span>
+        </div>
+        <div style={rowStyle}>
+          <span style={labelStyle}>聯絡電話</span>
+          <span style={valStyle}>{order.phone||'-'}</span>
+        </div>
+        <div style={{...rowStyle,borderBottom:'none'}}>
+          <span style={labelStyle}>訂單建立時間</span>
+          <span style={valStyle}>{createdStr}</span>
+        </div>
+      </div>
+
+      {/* 購物內容 — 揪團：每人一個區塊（圖2樣式） */}
+      {order.isGroup&&groupItems.length>0
+        ?groupItems.map(member=>{
+          const cnt=(member.items||[]).reduce((s,i)=>s+(i.qty||1),0);
+          const sub=member.subtotal||0;
+          return(
+            <div key={member.id} style={{background:'#fff',margin:'0 16px 10px',borderRadius:14,overflow:'hidden',boxShadow:'0 2px 10px rgba(0,0,0,.06)'}}>
+              {/* 成員 header */}
+              <div style={{display:'flex',alignItems:'center',gap:12,padding:'14px 16px',borderBottom:'1px solid var(--border)'}}>
+                <div style={{width:46,height:46,borderRadius:'50%',background:'var(--org)',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,fontWeight:700,flexShrink:0}}>
+                  {(member.member_name||'?')[0]}
+                </div>
+                <div style={{flex:1,fontWeight:700,fontSize:16}}>{member.member_name}</div>
+                <div style={{fontSize:14,fontWeight:700,color:'var(--muted)'}}>NT${sub} / {cnt} 份</div>
+              </div>
+              {/* 品項列表 — 不折疊，直接展開（像圖2） */}
+              {(member.items||[]).map((item,idx)=>(
+                <div key={idx} style={{padding:'12px 16px',borderBottom:'1px solid #f5f5f5'}}>
+                  <div style={{fontWeight:700,fontSize:15,marginBottom:4}}>{item.name}</div>
+                  <div style={{fontSize:13,color:'var(--muted)'}}>
+                    {item.opts&&!item.isFood&&[item.opts.spec,item.opts.sugar,item.opts.milk].filter(Boolean).join(' / ')}
+                    {item.opts&&!item.isFood&&' / '}
+                    NT${(item.price||0)*(item.qty||1)} / {item.qty||1}份
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })
+        /* 一般訂單（非揪團）：按 member 分群或列出所有品項 */
+        :<div style={{background:'#fff',margin:'0 16px 10px',borderRadius:14,overflow:'hidden',boxShadow:'0 2px 10px rgba(0,0,0,.06)'}}>
+          {/* 若 items 有 member 欄位，按人分群 */}
+          {(()=>{
+            const items=order.items||[];
+            const byMember={};
+            let hasMembers=false;
+            items.forEach(i=>{
+              const m=i.member||'';
+              if(m) hasMembers=true;
+              if(!byMember[m]) byMember[m]=[];
+              byMember[m].push(i);
+            });
+            if(hasMembers){
+              return Object.entries(byMember).map(([mName,mitems])=>(
+                <div key={mName} style={{borderBottom:'1px solid var(--border)'}}>
+                  {mName&&<div style={{display:'flex',alignItems:'center',gap:10,padding:'12px 16px',borderBottom:'1px solid #f5f5f5',background:'#fafafa'}}>
+                    <div style={{width:36,height:36,borderRadius:'50%',background:'var(--org)',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,fontWeight:700,flexShrink:0}}>{mName[0]}</div>
+                    <span style={{fontWeight:700,fontSize:15}}>{mName}</span>
+                    <span style={{fontSize:13,color:'var(--muted)',marginLeft:'auto'}}>NT${mitems.reduce((s,i)=>s+(i.price||0)*(i.qty||1),0)} / {mitems.reduce((s,i)=>s+(i.qty||1),0)}份</span>
+                  </div>}
+                  {mitems.map((item,idx)=>(
+                    <div key={idx} style={{padding:'11px 16px',borderBottom:'1px solid #f5f5f5'}}>
+                      <div style={{fontWeight:700,fontSize:15,marginBottom:3}}>{item.name}</div>
+                      <div style={{fontSize:13,color:'var(--muted)'}}>NT${(item.price||0)*(item.qty||1)} / {item.qty||1}份</div>
+                    </div>
+                  ))}
+                </div>
+              ));
+            }
+            return items.map((item,idx)=>(
+              <div key={idx} style={{padding:'12px 16px',borderBottom:'1px solid #f5f5f5'}}>
+                <div style={{fontWeight:700,fontSize:15,marginBottom:3}}>{item.name}</div>
+                <div style={{fontSize:13,color:'var(--muted)'}}>NT${(item.price||0)*(item.qty||1)} / {item.qty||1}份</div>
+              </div>
+            ));
+          })()}
+          {/* 金額總計 */}
+          <div style={{padding:'13px 16px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <span style={{fontSize:14,color:'var(--muted)'}}>商品 x{(order.items||[]).reduce((s,i)=>s+(i.qty||1),0)}</span>
+            <span style={{fontSize:14,fontWeight:600}}>NT${order.total}</span>
+          </div>
+        </div>
+      }
+
+      {/* 揪團訂單的金額總計 */}
+      {order.isGroup&&groupItems.length>0&&(
+        <div style={{background:'#fff',margin:'0 16px 16px',borderRadius:14,padding:'13px 16px',boxShadow:'0 2px 10px rgba(0,0,0,.06)'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8,fontSize:14,color:'var(--muted)'}}>
+            <span>商品 x{groupItems.reduce((s,m)=>s+((m.items||[]).reduce((ss,i)=>ss+(i.qty||1),0)),0)}</span>
+            <span>NT${groupItems.reduce((s,m)=>s+(m.subtotal||0),0)}</span>
+          </div>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:8,borderTop:'1px solid var(--border)'}}>
+            <span style={{fontSize:16,fontWeight:900,color:'var(--org)'}}>應付金額</span>
+            <span style={{fontSize:18,fontWeight:900,color:'var(--org)'}}>NT${order.total}</span>
+          </div>
+        </div>
+      )}
+
+      <button onClick={()=>setTab('home')} style={{width:'calc(100% - 32px)',margin:'0 16px',padding:17,background:'var(--org)',color:'#fff',border:'none',borderRadius:12,fontSize:16,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
+        再次訂購
+      </button>
     </div>
   );
 }
 
+/* ─── APP ─── */
 function App(){
   const[tab,setTab]=useState('home');
+  // groupCart: 揪團模式下自己的品項，不放 cart，只同步到 group_items
   const[cart,setCart]=useState([]);
+  const[groupCart,setGroupCart]=useState([]);
   const[confirmOrder,setConfirmOrder]=useState(null);
   const[showToast,toastEl]=useToast();
   const[searching,setSearching]=useState(false);
   const[searchQ,setSearchQ]=useState('');
-  const searchRef=React.useRef(null);
+  const searchRef=useRef(null);
   const[globalMember,setGlobalMember]=useState(null);
-  // 揪團狀態
-  const[groupRoom,setGroupRoom]=useState(null); // {room_code, creator_name, isCreator}
-  const[showGroupModal,setShowGroupModal]=useState(false); // 揪團彈窗
-  const[groupSummaryMode,setGroupSummaryMode]=useState(false); // 購物車顯示團購彙總
+  const[groupRoom,setGroupRoom]=useState(null);
+  const[groupClosed,setGroupClosed]=useState(false);
+  const[myGroupName,setMyGroupName]=useState('');
+  const[currentStore,setCurrentStore]=useState(STORES[0]);
 
-  // 從 URL 參數偵測是否是揪團邀請連結
   useEffect(()=>{
     const params=new URLSearchParams(window.location.search);
-    const code=params.get('group');
-    const name=params.get('name');
+    const code=params.get('group');const gname=params.get('name');
     if(code){
-      setGroupRoom({room_code:code,creator_name:name||'',isCreator:false});
-      setTab('menu');
-      showToast&&showToast('🎉 已加入揪團：'+code);
+      db.from('group_orders').select('status,creator_name').eq('room_code',code).single().then(({data})=>{
+        if(data&&data.status==='closed'){setGroupClosed(true);showToast('⚠️ 此揪團已關閉');}
+        else{
+          setGroupRoom({room_code:code,creator_name:data?.creator_name||gname||'',isCreator:false});
+          setTab('menu');
+          // 非主揪：名字從 URL param 取得（主揪傳連結時不含名字，所以會是空的需要輸入）
+          if(gname) setMyGroupName(gname);
+        }
+      });
     }
   },[]);
 
-  const cartCount=cart.reduce((s,i)=>s+i.qty,0);
-  const titles={home:'',menu:'逢甲大學店',cart:groupRoom?'揪團購物車':'購物車',confirm:'確認明細',my:'我的'};
-  const showBack=['menu','confirm'].includes(tab);
+  useEffect(()=>{
+    if(!groupRoom)return;
+    const t=setInterval(async()=>{
+      const{data}=await db.from('group_orders').select('status').eq('room_code',groupRoom.room_code).single();
+      if(data&&(data.status==='closed'||data.status==='processing')&&!groupRoom.isCreator){
+        setGroupClosed(true);showToast('⚠️ 主揪已開始結帳，無法繼續點餐');
+      }
+    },4000);
+    return()=>clearInterval(t);
+  },[groupRoom]);
+
+  // 同步 groupCart 到 DB
+  const syncGroupCart=useCallback(async(newCart,name)=>{
+    if(!groupRoom||!name)return;
+    const subtotal=newCart.reduce((s,i)=>s+(i.price||0)*(i.qty||1),0);
+    const{data:ex}=await db.from('group_items').select('id').eq('room_code',groupRoom.room_code).eq('member_name',name).limit(1);
+    if(ex&&ex.length>0) await db.from('group_items').update({items:newCart,subtotal}).eq('id',ex[0].id);
+    else await db.from('group_items').insert([{room_code:groupRoom.room_code,member_name:name,items:newCart,subtotal}]);
+  },[groupRoom]);
+
+  const cartCount=groupRoom?0:cart.reduce((s,i)=>s+(i.qty||1),0);
+  const storeName=currentStore.short||currentStore.name.replace('路易莎 ','');
 
   function goBack(){
-    if(tab==='menu'){ setSearching(false); setSearchQ(''); setTab('home'); }
-    if(tab==='confirm') setTab('cart');
-  }
-
-  function openSearch(){
-    setSearching(true);
-    setTimeout(()=>searchRef.current&&searchRef.current.focus(),100);
+    if(tab==='menu'){setSearching(false);setSearchQ('');setTab('home');}
+    if(tab==='confirm')setTab('home');
   }
 
   return(
     <div style={{display:'flex',flexDirection:'column',minHeight:'100vh',background:'var(--bg)'}}>
       <div className="top-bar">
         {searching&&tab==='menu'
-          ? <div style={{display:'flex',alignItems:'center',gap:8,flex:1}}>
+          ?<div style={{display:'flex',alignItems:'center',gap:8,flex:1}}>
               <button onClick={()=>{setSearching(false);setSearchQ('');}} style={{background:'none',border:'none',fontSize:20,cursor:'pointer',padding:'0 4px',color:'var(--text)'}}>←</button>
-              <input ref={searchRef} value={searchQ} onChange={e=>setSearchQ(e.target.value)}
-                placeholder="搜尋商品名稱..."
+              <input ref={searchRef} value={searchQ} onChange={e=>setSearchQ(e.target.value)} placeholder="搜尋商品名稱..."
                 style={{flex:1,border:'none',outline:'none',fontSize:15,fontFamily:'inherit',background:'transparent'}}/>
               {searchQ&&<button onClick={()=>setSearchQ('')} style={{background:'none',border:'none',fontSize:16,cursor:'pointer',color:'#aaa',padding:'0 4px'}}>✕</button>}
             </div>
-          : <div style={{display:'flex',alignItems:'center',gap:4,flex:1}}>
-              {showBack&&<span className="back" onClick={goBack}>←</span>}
-              <h1>{titles[tab]}</h1>
-              {groupRoom&&tab==='menu'&&<span style={{fontSize:11,background:'var(--org)',color:'#fff',padding:'2px 7px',borderRadius:8,marginLeft:4,fontWeight:700}}>揪團中</span>}
+          :<div style={{display:'flex',alignItems:'center',gap:4,flex:1}}>
+              {['menu','confirm'].includes(tab)&&<span className="back" onClick={goBack}>←</span>}
+              <h1 style={{fontSize:tab==='menu'&&storeName.length>7?14:17}}>{tab==='home'?'':tab==='menu'?storeName:tab==='cart'?'購物車':tab==='confirm'?'訂單明細':'我的'}</h1>
+              {groupRoom&&!groupClosed&&tab==='menu'&&<span style={{fontSize:11,background:'var(--org)',color:'#fff',padding:'2px 7px',borderRadius:8,marginLeft:4,fontWeight:700}}>揪團中</span>}
+              {groupClosed&&tab==='menu'&&<span style={{fontSize:11,background:'#bbb',color:'#fff',padding:'2px 6px',borderRadius:8,marginLeft:4,fontWeight:700,display:'inline-flex',alignItems:'center',gap:2}}><span style={{textDecoration:'line-through',opacity:.7}}>揪團</span><span style={{fontSize:9}}>已關閉</span></span>}
             </div>
         }
-        {tab==='menu'&&!searching&&<span style={{fontSize:22,cursor:'pointer'}} onClick={openSearch}>🔍</span>}
-        {tab==='home'&&<span style={{fontSize:22}}></span>}
+        {tab==='menu'&&!searching&&<span style={{fontSize:22,cursor:'pointer'}} onClick={()=>{setSearching(true);setTimeout(()=>searchRef.current&&searchRef.current.focus(),80)}}>🔍</span>}
       </div>
 
       <div className="page-wrap" style={{flex:1}}>
-        {tab==='home'&&<HomePage setTab={setTab} setGroupRoom={setGroupRoom} setShowGroupModal={setShowGroupModal} showGroupModal={showGroupModal} showToast={showToast}/>}
-        {tab==='menu'&&<MenuPage cart={cart} setCart={setCart} showToast={showToast} searchQ={searchQ} globalMember={globalMember} setGlobalMember={setGlobalMember} groupRoom={groupRoom} groupMyName={groupRoom?.my_name||groupRoom?.creator_name||''}/>}
-        {tab==='cart'&&<CartPage cart={cart} setCart={setCart} setTab={setTab} setConfirmOrder={setConfirmOrder} showToast={showToast} globalMember={globalMember} setGlobalMember={setGlobalMember} groupRoom={groupRoom} setGroupRoom={setGroupRoom}/>}
-        {tab==='confirm'&&<ConfirmPage order={confirmOrder} setTab={setTab}/>}
+        {tab==='home'&&<HomePage setTab={setTab} setGroupRoom={setGroupRoom} showToast={showToast} setCurrentStore={setCurrentStore} setMyGroupName={setMyGroupName}/>}
+        {tab==='menu'&&<MenuPage
+          cart={groupRoom?groupCart:cart} setCart={groupRoom?setGroupCart:setCart}
+          showToast={showToast} searchQ={searchQ}
+          globalMember={globalMember} setGlobalMember={setGlobalMember}
+          groupRoom={groupRoom} groupClosed={groupClosed}
+          myGroupName={myGroupName} setMyGroupName={setMyGroupName}
+          syncGroupCart={syncGroupCart}
+          currentStore={currentStore}
+        />}
+        {tab==='cart'&&<CartPage cart={cart} setCart={setCart} setTab={setTab} setConfirmOrder={setConfirmOrder} showToast={showToast} globalMember={globalMember} setGlobalMember={setGlobalMember} currentStore={currentStore}/>}
+        {tab==='confirm'&&<OrderDetailPage order={confirmOrder} setTab={setTab}/>}
         {tab==='my'&&<MyPage globalMember={globalMember} setGlobalMember={setGlobalMember}/>}
       </div>
 
       <div className="bottom-nav">
         {[
-          {k:'home',i:'🏠',l:'首頁'},
+          {k:'home',i:'🏠',l:'訂購'},
           {k:'menu',i:'☕',l:'點購'},
           {k:'cart',i:'🛒',l:'購物車',badge:cartCount},
           {k:'my',i:'👤',l:'我的'},
@@ -387,157 +781,174 @@ function App(){
           <button key={n.k} className={`nav-btn${tab===n.k?' active':''}`} onClick={()=>setTab(n.k)}>
             <span className="ni" style={{position:'relative'}}>
               {n.i}
-              {n.badge>0&&<span style={{position:'absolute',top:-4,right:-6,background:'var(--red)',color:'#fff',borderRadius:'50%',width:16,height:16,fontSize:10,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>{n.badge}</span>}
+              {(n.badge||0)>0&&<span style={{position:'absolute',top:-4,right:-6,background:'var(--red)',color:'#fff',borderRadius:'50%',width:16,height:16,fontSize:10,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>{n.badge}</span>}
             </span>
             <span>{n.l}</span>
           </button>
         ))}
       </div>
 
-      {/* 揪團底部提示條 - 只在點購頁顯示 */}
-      {groupRoom&&tab==='menu'&&(
-        <GroupBottomBar groupRoom={groupRoom} setTab={setTab} showToast={showToast} cart={cart} myName={groupRoom.my_name||groupRoom.creator_name||''} setGroupRoom={setGroupRoom} setConfirmOrder={setConfirmOrder} setCart={setCart}/>
+      {groupRoom&&!groupClosed&&tab==='menu'&&(
+        <GroupBottomBar
+          groupRoom={groupRoom} myName={myGroupName}
+          currentStore={currentStore} showToast={showToast}
+          setGroupRoom={setGroupRoom} setConfirmOrder={setConfirmOrder}
+          setTab={setTab}
+        />
       )}
       {toastEl}
     </div>
   );
 }
 
-/* ── HOME PAGE ── */
-function HomePage({setTab,setGroupRoom,showToast}){
+/* ─── HOME PAGE ─── */
+function HomePage({setTab,setGroupRoom,showToast,setCurrentStore,setMyGroupName}){
   const[groupModal,setGroupModal]=useState(false);
   const[creatorName,setCreatorName]=useState('');
   const[creating,setCreating]=useState(false);
   const[groupInfo,setGroupInfo]=useState(null);
-  const currentUrl=(window.location.href.split('?')[0]);
+  const[storeQ,setStoreQ]=useState('');
+  const[storeResults,setStoreResults]=useState([]);
+  const baseUrl=window.location.href.split('?')[0];
+
+  function searchStores(q){
+    setStoreQ(q);
+    if(!q.trim()){setStoreResults([]);return;}
+    setStoreResults(STORES.filter(s=>s.name.includes(q)||s.addr.includes(q)));
+  }
+
+  function selectStore(store){
+    setCurrentStore(store);setStoreQ('');setStoreResults([]);setTab('menu');
+  }
 
   async function createGroup(){
     if(!creatorName.trim()){showToast('請輸入你的名字');return;}
     setCreating(true);
     const code='G'+Math.random().toString(36).substr(2,6).toUpperCase();
-    const{error}=await db.from('group_orders').insert([{
-      room_code:code, creator_name:creatorName.trim(), status:'open'
-    }]);
+    const{error}=await db.from('group_orders').insert([{room_code:code,creator_name:creatorName.trim(),status:'open'}]);
     if(error){showToast('❌ 建立失敗：'+error.message);setCreating(false);return;}
-    await db.from('group_items').insert([{
-      room_code:code, member_name:creatorName.trim(), items:[], subtotal:0
-    }]);
-    const inviteUrl=currentUrl+'?group='+code+'&name='+encodeURIComponent(creatorName.trim());
-    const qrUrl='https://api.qrserver.com/v1/create-qr-code/?size=180x180&data='+encodeURIComponent(inviteUrl);
-    setGroupInfo({room_code:code, url:inviteUrl, qr:qrUrl});
-    setGroupRoom({room_code:code, creator_name:creatorName.trim(), my_name:creatorName.trim(), isCreator:true});
+    await db.from('group_items').insert([{room_code:code,member_name:creatorName.trim(),items:[],subtotal:0}]);
+    const url=baseUrl+'?group='+code+'&name='+encodeURIComponent(creatorName.trim());
+    const qr='https://api.qrserver.com/v1/create-qr-code/?size=180x180&data='+encodeURIComponent(url);
+    setGroupInfo({room_code:code,url,qr});
+    setGroupRoom({room_code:code,creator_name:creatorName.trim(),isCreator:true});
+    setMyGroupName(creatorName.trim());
     setCreating(false);
   }
 
   function copyLink(){
     navigator.clipboard.writeText(groupInfo.url).then(()=>showToast('✅ 連結已複製！')).catch(()=>{
-      const el=document.createElement('textarea');
-      el.value=groupInfo.url; document.body.appendChild(el);
-      el.select(); document.execCommand('copy'); document.body.removeChild(el);
+      const el=document.createElement('textarea');el.value=groupInfo.url;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);
       showToast('✅ 連結已複製！');
     });
   }
 
-  function enterGroup(){
-    setGroupModal(false); setGroupInfo(null); setCreatorName('');
-    setTab('menu');
-  }
-
   return(
-    <div>
-      <div className="loc-bar">
-        <span>📍</span><span>當前位置：台中市西屯區...</span><span className="arr">▼</span>
-      </div>
-      <div className="pad16">
-        <div className="search-box">
+    <div style={{paddingBottom:16}}>
+      <div className="loc-bar">📍<span style={{marginLeft:4}}>當前位置：台中市西屯區...</span><span style={{color:'var(--muted)',fontSize:11,marginLeft:3}}>▼</span></div>
+      <div style={{padding:'0 16px 8px',position:'relative'}}>
+        <div style={{display:'flex',alignItems:'center',gap:8,background:'#f0f0f0',borderRadius:24,padding:'10px 16px'}}>
           <span style={{color:'var(--muted)'}}>🔍</span>
-          <input placeholder="搜尋門市或商品"/>
+          <input value={storeQ} onChange={e=>searchStores(e.target.value)} placeholder="搜尋門市（逢甲、文心、一中…）"
+            style={{flex:1,border:'none',background:'none',outline:'none',fontSize:13,fontFamily:'inherit'}}/>
+          {storeQ&&<button onClick={()=>{setStoreQ('');setStoreResults([]);}} style={{background:'none',border:'none',fontSize:15,cursor:'pointer',color:'#aaa',padding:0}}>✕</button>}
+        </div>
+        {storeResults.length>0&&(
+          <div style={{position:'absolute',top:'100%',left:16,right:16,background:'#fff',borderRadius:12,boxShadow:'0 4px 20px rgba(0,0,0,.12)',zIndex:60,overflow:'hidden',marginTop:3}}>
+            {storeResults.map((s,i)=>(
+              <div key={s.id} onClick={()=>selectStore(s)}
+                style={{padding:'11px 16px',borderBottom:i<storeResults.length-1?'1px solid #f0f0f0':'none',cursor:'pointer',display:'flex',alignItems:'center',gap:10}}
+                onMouseEnter={e=>e.currentTarget.style.background='#fff3e0'}
+                onMouseLeave={e=>e.currentTarget.style.background='#fff'}>
+                <span style={{fontSize:18}}>🏪</span>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:600,fontSize:13,color:'var(--org)'}}>{s.name}</div>
+                  <div style={{fontSize:11,color:'var(--muted)',marginTop:1}}>📍 {s.addr}</div>
+                </div>
+                <span style={{fontSize:11,color:'var(--muted)',flexShrink:0}}>{s.dist} km</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {storeQ&&storeResults.length===0&&(
+          <div style={{position:'absolute',top:'100%',left:16,right:16,background:'#fff',borderRadius:12,boxShadow:'0 4px 20px rgba(0,0,0,.12)',zIndex:60,padding:'14px',textAlign:'center',fontSize:13,color:'var(--muted)',marginTop:3}}>
+            找不到「{storeQ}」的門市
+          </div>
+        )}
+      </div>
+
+      <div style={{padding:'0 16px 10px'}}>
+        <div style={{background:'linear-gradient(135deg,#E87722,#C45E0A)',borderRadius:14,padding:18,color:'#fff',position:'relative',minHeight:110,overflow:'hidden'}}>
+          <div style={{display:'flex',gap:6,marginBottom:8}}>
+            <span style={{background:'rgba(255,255,255,.25)',padding:'2px 8px',borderRadius:10,fontSize:10,fontWeight:700}}>第一重</span>
+            <span style={{background:'rgba(255,255,255,.25)',padding:'2px 8px',borderRadius:10,fontSize:10,fontWeight:700}}>第二重</span>
+          </div>
+          <div style={{fontSize:10,opacity:.85,marginBottom:2}}>+1元升級美式(M)</div>
+          <div style={{fontSize:20,fontWeight:900,lineHeight:1.15}}>早餐派對<br/><span style={{fontSize:26}}>超值</span>更有感</div>
+          <div style={{position:'absolute',top:10,right:14,background:'rgba(255,255,255,.2)',borderRadius:10,padding:'6px 12px',textAlign:'center'}}>
+            <div style={{fontSize:10,opacity:.85}}>$</div>
+            <div style={{fontSize:30,fontWeight:900,lineHeight:1}}>70</div>
+            <div style={{fontSize:10,opacity:.85}}>起</div>
+          </div>
         </div>
       </div>
-      <div className="pad16">
-        <div className="banner" style={{background:'linear-gradient(135deg,#E87722,#C45E0A)',borderRadius:14,padding:20,color:'#fff',position:'relative',minHeight:120,overflow:'hidden'}}>
-          <div style={{display:'flex',gap:6,marginBottom:10}}>
-            <span style={{background:'rgba(255,255,255,.25)',padding:'2px 8px',borderRadius:10,fontSize:11,fontWeight:700}}>第一重</span>
-            <span style={{background:'rgba(255,255,255,.25)',padding:'2px 8px',borderRadius:10,fontSize:11,fontWeight:700}}>第二重</span>
+
+      <div style={{padding:'0 16px'}}>
+        <div style={{fontSize:16,fontWeight:700,color:'var(--org)',marginBottom:8}}>附近推薦店家</div>
+        {STORES.slice(0,3).map((store,i)=>(
+          <div key={store.id} className="store-card" onClick={()=>selectStore(store)} style={{cursor:'pointer',marginBottom:10}}>
+            <div className="store-img" style={{background:['#c8d8c0','#d0c8e0','#d8c8c0'][i],height:110,fontSize:44}}>🏪</div>
+            <div className="store-info">
+              <div className="store-name">{store.name}</div>
+              <div className="store-meta">📞 {store.phone} · ⭐ 4.{4+i} · {store.dist} 公里</div>
+            </div>
           </div>
-          <div style={{fontSize:11,opacity:.85,marginBottom:2}}>+1元升級美式(M)</div>
-          <div style={{fontSize:22,fontWeight:900,lineHeight:1.1,marginBottom:4}}>早餐派對<br/><span style={{fontSize:28}}>超值</span>更有感</div>
-          <div style={{fontSize:11,opacity:.85}}>咖啡飲品第二杯5折</div>
-          <div style={{position:'absolute',top:12,right:16,background:'rgba(255,255,255,.2)',borderRadius:10,padding:'8px 14px',textAlign:'center'}}>
-            <div style={{fontSize:11,opacity:.85}}>$</div>
-            <div style={{fontSize:32,fontWeight:900,lineHeight:1}}>70</div>
-            <div style={{fontSize:11,opacity:.85}}>起</div>
-          </div>
-        </div>
-      </div>
-      <div className="pad16" style={{marginTop:4}}>
-        <div className="section-title">品牌介紹</div>
-        <p style={{fontSize:13,lineHeight:1.8,color:'#444',marginBottom:20}}>
-          因一句「懂得喝義式咖啡才是行家」創辦人黃銘賢初嚐 Espresso，強烈風味震撼了味蕾，定下做杯好咖啡的決心。堅持手工烘豆、細細翻動、控制火侯，歷經四年研發出經典配方，以義大利女神 Louisa 為名，並於 2006 年創立第一間門市。
-        </p>
-        <div className="section-title">附近推薦店家</div>
-        <div className="store-card" onClick={()=>setTab('menu')} style={{cursor:'pointer',marginBottom:16}}>
-          <div className="store-img" style={{background:'#c8d8c0',fontSize:60,display:'flex',alignItems:'center',justifyContent:'center'}}>🏪</div>
-          <div className="store-info">
-            <div className="store-name">路易莎 逢甲大學店</div>
-            <div className="store-meta">⭐ 4.4 · 約 2.1 公里</div>
-          </div>
-        </div>
+        ))}
       </div>
 
       <button className="launch-btn" onClick={()=>setGroupModal(true)}>🎉 快速發起揪團</button>
 
-      {/* 揪團 Modal */}
       {groupModal&&(
         <div className="modal-wrap" onClick={()=>{if(!groupInfo){setGroupModal(false);setCreatorName('');}}}>
-          <div className="modal-sheet" onClick={e=>e.stopPropagation()} style={{position:'relative',paddingBottom:32}}>
+          <div className="modal-sheet" onClick={e=>e.stopPropagation()}>
             <button onClick={()=>{setGroupModal(false);setGroupInfo(null);setCreatorName('');}}
               style={{position:'absolute',top:16,right:16,background:'none',border:'none',fontSize:22,cursor:'pointer',color:'#aaa'}}>✕</button>
-
-            {!groupInfo
-              ?<>
-                <div style={{fontWeight:700,fontSize:20,marginBottom:6}}>揪團分享</div>
-                <div style={{fontSize:13,color:'var(--muted)',marginBottom:20}}>建立揪團，讓朋友掃 QR Code 一起點餐</div>
-                <div style={{marginBottom:16}}>
-                  <div style={{fontSize:13,color:'var(--muted)',marginBottom:8}}>你的名字</div>
-                  <input value={creatorName} onChange={e=>setCreatorName(e.target.value)}
-                    placeholder="例：小明"
-                    style={{width:'100%',border:'1.5px solid #e0e0e0',borderRadius:10,padding:'12px 14px',fontSize:15,fontFamily:'inherit',outline:'none'}}
-                    onKeyDown={e=>e.key==='Enter'&&createGroup()}/>
+            {!groupInfo?<>
+              <div style={{fontWeight:700,fontSize:20,marginBottom:6}}>揪團分享</div>
+              <div style={{fontSize:13,color:'var(--muted)',marginBottom:18}}>建立揪團，讓朋友掃 QR Code 一起點餐</div>
+              <div style={{marginBottom:14}}>
+                <div style={{fontSize:13,color:'var(--muted)',marginBottom:7}}>你的名字</div>
+                <input value={creatorName} onChange={e=>setCreatorName(e.target.value)} placeholder="例：小明"
+                  style={{width:'100%',border:'1.5px solid #e0e0e0',borderRadius:10,padding:'12px 14px',fontSize:15,fontFamily:'inherit',outline:'none',display:'block'}}
+                  onFocus={e=>e.target.style.borderColor='var(--org)'} onBlur={e=>e.target.style.borderColor='#e0e0e0'}
+                  onKeyDown={e=>e.key==='Enter'&&createGroup()}/>
+              </div>
+              <button onClick={createGroup} disabled={creating}
+                style={{width:'100%',padding:15,background:'var(--org)',color:'#fff',border:'none',borderRadius:12,fontSize:15,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
+                {creating?'建立中...':'🎉 建立揪團'}
+              </button>
+            </>:<>
+              <div style={{fontWeight:700,fontSize:19,marginBottom:4,textAlign:'center'}}>揪團分享</div>
+              <div style={{fontSize:13,color:'var(--muted)',textAlign:'center',marginBottom:14}}>分享連結給朋友，一起揪團點餐！</div>
+              <div style={{background:'#f8f8f8',borderRadius:14,padding:14,marginBottom:10,display:'flex',alignItems:'center',justifyContent:'space-around'}}>
+                <div style={{fontSize:48}}>☕</div>
+                <div style={{textAlign:'center'}}>
+                  <img src={groupInfo.qr} alt="QR" style={{width:145,height:145,borderRadius:8,background:'#fff',padding:4,display:'block'}}/>
+                  <div style={{fontSize:11,color:'var(--muted)',marginTop:5}}>掃碼加入揪團</div>
                 </div>
-                <button onClick={createGroup} disabled={creating}
-                  style={{width:'100%',padding:16,background:'var(--org)',color:'#fff',border:'none',borderRadius:12,fontSize:16,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
-                  {creating?'建立中...':'🎉 建立揪團'}
-                </button>
-              </>
-              :<>
-                <div style={{fontWeight:700,fontSize:20,marginBottom:4,textAlign:'center'}}>揪團分享</div>
-                <div style={{fontSize:13,color:'var(--muted)',textAlign:'center',marginBottom:16}}>連結分享給其它人，邀請大家加入訂單，一起團購！</div>
-                <div style={{background:'#f8f8f8',borderRadius:14,padding:16,marginBottom:12,display:'flex',alignItems:'center',justifyContent:'space-around'}}>
-                  <div style={{fontSize:56,lineHeight:1}}>☕</div>
-                  <div style={{textAlign:'center'}}>
-                    <img src={groupInfo.qr} alt="QR Code"
-                      style={{width:150,height:150,borderRadius:8,background:'#fff',padding:4,display:'block'}}/>
-                    <div style={{fontSize:12,color:'var(--muted)',marginTop:6}}>掃碼加入揪團</div>
-                  </div>
-                </div>
-                <div style={{fontSize:14,color:'var(--org)',textAlign:'center',marginBottom:12,fontWeight:700}}>
-                  揪團代碼：{groupInfo.room_code}
-                </div>
-                <div style={{display:'flex',gap:8,marginBottom:12,alignItems:'center'}}>
-                  <input readOnly value={groupInfo.url}
-                    style={{flex:1,border:'1px solid #e0e0e0',borderRadius:8,padding:'10px 12px',fontSize:11,fontFamily:'monospace',background:'#f5f5f5',color:'#555',outline:'none'}}/>
-                  <button onClick={copyLink}
-                    style={{padding:'10px 14px',background:'var(--org)',color:'#fff',border:'none',borderRadius:8,fontSize:13,fontFamily:'inherit',fontWeight:600,cursor:'pointer',whiteSpace:'nowrap'}}>
-                    複製
-                  </button>
-                </div>
-                <button onClick={enterGroup}
-                  style={{width:'100%',padding:16,background:'#1a1a1a',color:'#fff',border:'none',borderRadius:12,fontSize:16,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
-                  開始點餐 →
-                </button>
-              </>
-            }
+              </div>
+              <div style={{fontSize:14,color:'var(--org)',textAlign:'center',marginBottom:10,fontWeight:700}}>揪團代碼：{groupInfo.room_code}</div>
+              <div style={{display:'flex',gap:8,marginBottom:10}}>
+                <input readOnly value={groupInfo.url}
+                  style={{flex:1,border:'1px solid #e0e0e0',borderRadius:8,padding:'9px 12px',fontSize:11,fontFamily:'monospace',background:'#f5f5f5',color:'#555',outline:'none'}}/>
+                <button onClick={copyLink}
+                  style={{padding:'9px 14px',background:'var(--org)',color:'#fff',border:'none',borderRadius:8,fontSize:13,fontFamily:'inherit',fontWeight:600,cursor:'pointer',whiteSpace:'nowrap'}}>複製</button>
+              </div>
+              <button onClick={()=>{setGroupModal(false);setGroupInfo(null);setCreatorName('');setTab('menu');}}
+                style={{width:'100%',padding:15,background:'#1a1a1a',color:'#fff',border:'none',borderRadius:12,fontSize:15,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
+                開始點餐 →
+              </button>
+            </>}
           </div>
         </div>
       )}
@@ -545,238 +956,292 @@ function HomePage({setTab,setGroupRoom,showToast}){
   );
 }
 
-
-/* ── MENU PAGE ── */
-function MenuPage({cart,setCart,showToast,searchQ,globalMember,setGlobalMember,groupRoom,groupMyName}){
+/* ─── MENU PAGE ─── */
+function MenuPage({cart,setCart,showToast,searchQ,globalMember,setGlobalMember,groupRoom,groupClosed,myGroupName,setMyGroupName,syncGroupCart,currentStore}){
   const[products,setProducts]=useState([]);
   const[loading,setLoading]=useState(true);
-  const[cat,setCat]=useState('我的最愛');
+  const[cat,setCat]=useState(null); // null = 未選分類
   const[custom,setCustom]=useState(null);
   const[opts,setOpts]=useState({spec:'大熱',milk:'一般鮮奶',sugar:'無糖'});
-  const[favorites,setFavorites]=useState(()=>{
-    try{ return JSON.parse(localStorage.getItem('louisa_favs')||'[]'); }catch{ return []; }
-  });
-  const[memberInput,setMemberInput]=useState('');
-  const[memberMsg,setMemberMsg]=useState('');
-  const[memberLoading,setMemberLoading]=useState(false);
-  const[showMemberBar,setShowMemberBar]=useState(false);
+  const[favorites,setFavorites]=useState(()=>{try{return JSON.parse(localStorage.getItem('louisa_favs')||'[]');}catch{return[];}});
+  // 我的最愛：需要先輸入會員號碼
+  const[memberPhone,setMemberPhone]=useState('');
+  const[memberLogged,setMemberLogged]=useState(false);
+  const[memberLookup,setMemberLookup]=useState(false);
+  const[memberName,setMemberName]=useState('');
+  // 非主揪人第一次進來要輸入名字
+  const[nameModal,setNameModal]=useState(false);
+  const[nameInput,setNameInput]=useState('');
+  const nameInputRef=useRef(null);
 
   useEffect(()=>{
-    db.from('products').select('*').eq('available',true).order('id')
-      .then(({data})=>{ setProducts(data||[]); setLoading(false); });
+    if(groupRoom&&!groupRoom.isCreator&&!myGroupName){
+      setNameModal(true);
+      setTimeout(()=>nameInputRef.current&&nameInputRef.current.focus(),300);
+    }
+  },[groupRoom,myGroupName]);
+
+  useEffect(()=>{
+    db.from('products').select('*').eq('available',true).order('id').then(({data})=>{
+      const prods=data||[];setProducts(prods);setLoading(false);
+      // 預設分類：已登入會員 → 我的最愛；否則 → 第一個分類
+      setCat(prev=>{
+        if(prev) return prev;
+        return '全部';
+      });
+    });
   },[]);
 
+  // 登入後切換到我的最愛
+  useEffect(()=>{
+    if(memberLogged) setCat('我的最愛');
+  },[memberLogged]);
+
   async function lookupMember(){
-    if(!memberInput.trim()){ setMemberMsg('請輸入手機號碼'); return; }
-    setMemberLoading(true); setMemberMsg('');
-    const{data}=await db.from('customers').select('*').eq('phone',memberInput.trim()).limit(1);
+    if(!memberPhone.trim()){showToast('請輸入會員號碼');return;}
+    setMemberLookup(true);
+    const{data}=await db.from('customers').select('*').eq('phone',memberPhone.trim()).limit(1);
+    setMemberLookup(false);
     if(data&&data.length>0){
-      const c=data[0];
-      const{data:od}=await db.from('orders').select('*').eq('member_phone',memberInput.trim()).order('created_at',{ascending:false}).limit(20);
-      setGlobalMember({phone:memberInput.trim(),customer:c,orders:od||[]});
-      setMemberMsg('✅ 歡迎回來，'+c.name+'！');
-      showToast('✅ 會員登入成功：'+c.name);
-    } else {
-      setMemberMsg('查無此會員資料，點餐即可成為會員');
-      setGlobalMember({phone:memberInput.trim(),customer:null,orders:[]});
-    }
-    setMemberLoading(false);
-  }
-
-  function clearMember(){
-    setGlobalMember(null); setMemberInput(''); setMemberMsg(''); setShowMemberBar(false);
-  }
-
-  const isSearching=searchQ&&searchQ.trim().length>0;
-
-  function toggleFav(p,e){
-    e.stopPropagation();
-    setFavorites(prev=>{
-      const isFav=prev.some(f=>f.id===p.id);
-      const next=isFav?prev.filter(f=>f.id!==p.id):[...prev,{id:p.id,name:p.name,price:p.price,category:p.category,image_url:p.image_url}];
-      try{ localStorage.setItem('louisa_favs',JSON.stringify(next)); }catch{}
-      showToast(isFav?'💔 已移除最愛':'❤️ 已加入最愛');
-      return next;
-    });
-  }
-
-  const cats=['我的最愛','全部','義式咖啡','茶飲','精品咖啡','輕食'];
-  const filtered=isSearching
-    ? products.filter(p=>p.name.includes(searchQ.trim()))
-    : cat==='我的最愛'?favorites
-    : cat==='全部'?products
-    : products.filter(p=>p.category===cat);
-
-  const FOOD_CATS=['輕食','甜點'];
-
-  function addToCart(){
-    const isFood=FOOD_CATS.includes(custom.category);
-    const extra=(!isFood&&opts.milk==='小農鮮奶')?10:0;
-    const item={id:Date.now(),pid:custom.id,name:custom.name,opts:isFood?{add:[]}:opts,price:custom.price+extra,qty:1,isFood,source:'customer'};
-    setCart(prev=>{
-      const ex=prev.find(i=>i.pid===item.pid&&JSON.stringify(i.opts)===JSON.stringify(item.opts));
-      const newCart=ex?prev.map(i=>i.id===ex.id?{...i,qty:i.qty+1}:i):[...prev,item];
-      // 揪團模式：加入購物車後自動同步到揪團
-      if(groupRoom&&groupMyName){
-        const name=(groupMyName||'').trim();
-        if(name){
-          const subtotal=newCart.reduce((s,i)=>s+i.price*i.qty,0);
-          db.from('group_items').select('*').eq('room_code',groupRoom.room_code).eq('member_name',name).limit(1)
-            .then(({data:existing})=>{
-              if(existing&&existing.length>0){
-                db.from('group_items').update({items:newCart,subtotal}).eq('id',existing[0].id).then(()=>{});
-              } else {
-                db.from('group_items').insert([{room_code:groupRoom.room_code,member_name:name,items:newCart,subtotal}]).then(()=>{});
-              }
-            });
+      setMemberLogged(true);
+      setMemberName(data[0].name||'會員');
+      setGlobalMember&&setGlobalMember({phone:memberPhone.trim(),customer:data[0]});
+      showToast('✅ 歡迎，'+(data[0].name||'會員')+'！');
+      // 設定預設最愛（若空）
+      setFavorites(prev=>{
+        if(prev.length===0&&products.length>=2){
+          const d=[products[0].id,products[1].id];
+          try{localStorage.setItem('louisa_favs',JSON.stringify(d));}catch{}
+          return d;
         }
-      }
-      return newCart;
-    });
-    showToast('✅ '+custom.name+' 已加入'+(groupRoom?'揪團購物車':'購物車'));
-    setCustom(null);
+        return prev;
+      });
+    } else {
+      showToast('❌ 查無此會員號碼');
+    }
   }
 
-  const totalPrice=custom?(custom.price+(opts.milk==='小農鮮奶'?10:0)):0;
+  async function confirmName(){
+    if(!nameInput.trim()){showToast('請輸入你的名字');return;}
+    setMyGroupName(nameInput.trim());
+    setNameModal(false);
+    showToast('🎉 已加入揪團！你是：'+nameInput.trim());
+    if(cart.length>0) await syncGroupCart(cart,nameInput.trim());
+  }
+
+  async function submitMyOrder(){
+    const name=myGroupName||groupRoom?.creator_name||'';
+    if(!name){showToast('請先輸入你的名字');setNameModal(true);return;}
+    if(cart.length===0){showToast('購物車是空的，請先選商品');return;}
+    await syncGroupCart(cart,name);
+    showToast('✅ 已送出你的餐點！等待主揪結帳');
+  }
+
+  const cats=[...new Set(products.map(p=>p.category))];
+  const favProds=products.filter(p=>favorites.includes(p.id));
+  const currentCat=cat||(cats[0]||'');
+  let displayed=searchQ
+    ?products.filter(p=>p.name.includes(searchQ))
+    :currentCat==='我的最愛'?favProds
+    :currentCat==='全部'?products
+    :products.filter(p=>p.category===currentCat);
+
+  function toggleFav(id){
+    setFavorites(prev=>{const n=prev.includes(id)?prev.filter(x=>x!==id):[...prev,id];try{localStorage.setItem('louisa_favs',JSON.stringify(n));}catch{}return n;});
+  }
+
+  const isFood=custom&&FOOD_CATS.includes(custom.category);
+  const milkExtra=opts.milk==='小農鮮奶'?10:0;
+
+  async function addToCart(){
+    if(groupClosed){showToast('⚠️ 揪團已關閉');return;}
+    if(groupRoom&&!groupRoom.isCreator&&!myGroupName){setNameModal(true);return;}
+    const extra=isFood?0:milkExtra;
+    const key=(custom.id)+'_'+(opts.spec||'')+'_'+(opts.sugar||'')+'_'+(opts.milk||'');
+    const newCart=cart.some(i=>i.cartKey===key)
+      ?cart.map(i=>i.cartKey===key?{...i,qty:(i.qty||1)+1}:i)
+      :[...cart,{id:Date.now(),cartKey:key,pid:custom.id,name:custom.name,opts:{...opts},price:custom.price+extra,qty:1,isFood:!!isFood}];
+    setCart(newCart);
+    showToast('✅ '+custom.name+' 已加入');
+    setCustom(null);
+    if(groupRoom&&!groupClosed){
+      const name=myGroupName||groupRoom.creator_name||'';
+      if(name) await syncGroupCart(newCart,name);
+    }
+  }
+
+  if(loading)return<div className="loading"><div className="spin"/><span>載入中...</span></div>;
+
+  const inGroup=groupRoom&&!groupClosed;
+  const isCreator=groupRoom?.isCreator;
+  const pbExtra=inGroup?'130px':'calc(var(--nav-h) + 4px)';
 
   return(
     <div>
-      {/* 會員輸入欄 */}
-      {!globalMember
-        ? <div style={{background:'#fff',borderBottom:'1px solid #f0f0f0',padding:'10px 16px'}}>
-            {!showMemberBar
-              ? <button onClick={()=>setShowMemberBar(true)}
-                  style={{width:'100%',padding:'10px',background:'var(--org-light)',border:'1.5px dashed var(--org)',borderRadius:10,fontSize:13,color:'var(--org)',fontFamily:'inherit',cursor:'pointer',fontWeight:500}}>
-                  👤 輸入會員電話享優惠（選填）
+      {/* 名字輸入 Modal（非主揪第一次進來） */}
+      {nameModal&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:300,display:'flex',alignItems:'center',justifyContent:'center',padding:'0 24px'}}>
+          <div style={{background:'#fff',borderRadius:16,padding:'28px 24px',width:'100%',maxWidth:360}}>
+            <div style={{fontSize:20,fontWeight:700,marginBottom:6,textAlign:'center'}}>🎉 加入揪團</div>
+            <div style={{fontSize:13,color:'var(--muted)',textAlign:'center',marginBottom:20}}>
+              揪團代碼：<strong style={{color:'var(--org)'}}>{groupRoom?.room_code}</strong><br/>
+              請輸入你的名字，讓主揪知道是誰點的
+            </div>
+            <input ref={nameInputRef} value={nameInput} onChange={e=>setNameInput(e.target.value)}
+              placeholder="例：小美、Tony、同事A"
+              style={{width:'100%',border:'1.5px solid var(--border)',borderRadius:10,padding:'13px 14px',fontSize:16,fontFamily:'inherit',outline:'none',display:'block',marginBottom:14,textAlign:'center'}}
+              onFocus={e=>e.target.style.borderColor='var(--org)'} onBlur={e=>e.target.style.borderColor='var(--border)'}
+              onKeyDown={e=>e.key==='Enter'&&confirmName()}/>
+            <button onClick={confirmName}
+              style={{width:'100%',padding:14,background:'var(--org)',color:'#fff',border:'none',borderRadius:12,fontSize:16,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
+              確認，開始點餐 →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 揪團狀態列 */}
+      {inGroup&&(
+        <div style={{background:'#fff3e0',borderTop:'2px solid var(--org)',padding:'7px 14px',display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+          <span style={{fontSize:13}}>🎉</span>
+          <span style={{fontSize:12,color:'var(--org)',fontWeight:600}}>揪團：{groupRoom.room_code}</span>
+          {myGroupName&&<span style={{fontSize:11,background:'var(--org)',color:'#fff',borderRadius:8,padding:'1px 7px',fontWeight:700}}>我是：{myGroupName}</span>}
+          {!myGroupName&&!isCreator&&<span style={{fontSize:11,color:'var(--red)',cursor:'pointer',textDecoration:'underline'}} onClick={()=>setNameModal(true)}>請輸入你的名字</span>}
+          <span style={{fontSize:11,color:'var(--muted)',marginLeft:'auto'}}>
+            {cart.length>0?`已點 ${cart.reduce((s,i)=>s+(i.qty||1),0)} 份`:'尚未點餐'}
+          </span>
+        </div>
+      )}
+      {groupClosed&&(
+        <div style={{background:'#f5f5f5',borderTop:'2px solid #bbb',padding:'8px 16px',display:'flex',alignItems:'center',gap:8}}>
+          <span>🔒</span><span style={{fontSize:12,color:'#888',fontWeight:600}}>揪團已關閉，無法繼續點餐</span>
+        </div>
+      )}
+
+      {/* 會員號碼輸入（進入我的最愛前） */}
+      {!searchQ&&(
+        <div style={{background:'#fff',borderBottom:'1px solid var(--border)',padding:'10px 16px',display:'flex',alignItems:'center',gap:8}}>
+          {memberLogged
+            ?<div style={{display:'flex',alignItems:'center',gap:8,flex:1}}>
+                <span style={{fontSize:18}}>👤</span>
+                <span style={{fontSize:13,fontWeight:600,color:'var(--org)'}}>歡迎，{memberName}！</span>
+                <button onClick={()=>{setMemberLogged(false);setMemberPhone('');setMemberName('');setCat(cats[0]||'義式咖啡');}}
+                  style={{marginLeft:'auto',fontSize:11,color:'var(--muted)',background:'none',border:'1px solid var(--border)',borderRadius:6,padding:'3px 8px',cursor:'pointer',fontFamily:'inherit'}}>
+                  登出
                 </button>
-              : <div>
-                  <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:6}}>
-                    <input value={memberInput} onChange={e=>setMemberInput(e.target.value)}
-                      placeholder="輸入手機號碼" onKeyDown={e=>e.key==='Enter'&&lookupMember()}
-                      style={{flex:1,border:'1.5px solid var(--border)',borderRadius:8,padding:'9px 12px',fontSize:14,fontFamily:'inherit',outline:'none'}}/>
-                    <button onClick={lookupMember} disabled={memberLoading}
-                      style={{padding:'9px 16px',background:'var(--org)',color:'#fff',border:'none',borderRadius:8,fontSize:13,fontFamily:'inherit',fontWeight:700,cursor:'pointer',whiteSpace:'nowrap'}}>
-                      {memberLoading?'查詢...':'確認'}
-                    </button>
-                    <button onClick={()=>{setShowMemberBar(false);setMemberInput('');setMemberMsg('');}}
-                      style={{background:'none',border:'none',fontSize:18,cursor:'pointer',color:'#aaa',padding:'0 4px'}}>✕</button>
+              </div>
+            :<>
+                <input value={memberPhone} onChange={e=>setMemberPhone(e.target.value)}
+                  placeholder="請輸入會員號碼查看我的最愛"
+                  style={{flex:1,border:'1.5px solid var(--border)',borderRadius:8,padding:'8px 12px',fontSize:13,fontFamily:'inherit',outline:'none'}}
+                  onFocus={e=>e.target.style.borderColor='var(--org)'} onBlur={e=>e.target.style.borderColor='var(--border)'}
+                  onKeyDown={e=>e.key==='Enter'&&lookupMember()}/>
+                <button onClick={lookupMember} disabled={memberLookup}
+                  style={{padding:'8px 14px',background:'var(--org)',color:'#fff',border:'none',borderRadius:8,fontSize:13,fontFamily:'inherit',fontWeight:600,cursor:'pointer',whiteSpace:'nowrap',flexShrink:0}}>
+                  {memberLookup?'查詢中':'確認'}
+                </button>
+              </>
+          }
+        </div>
+      )}
+
+      {/* 分類列：全部 + 我的最愛（登入後）+ 各分類 */}
+      {!searchQ&&(
+        <div className="cat-bar">
+          <div className={`cat-item${currentCat==='全部'?' active':''}`} onClick={()=>setCat('全部')}>全部</div>
+          {memberLogged&&(
+            <div className={`cat-item${currentCat==='我的最愛'?' active':''}`} onClick={()=>setCat('我的最愛')}>我的最愛</div>
+          )}
+          {cats.map(c=><div key={c} className={`cat-item${currentCat===c?' active':''}`} onClick={()=>setCat(c)}>{c}</div>)}
+        </div>
+      )}
+
+      {displayed.length===0
+        ?<div style={{textAlign:'center',padding:'60px 20px',color:'var(--muted)',fontSize:14}}>
+            {searchQ?'沒有符合的商品':currentCat==='我的最愛'?'點擊商品上的 🤍 加入最愛':'此分類尚無商品'}
+          </div>
+        :<div className="prod-grid" style={{paddingBottom:pbExtra}}>
+          {displayed.map(p=>{
+            const isFav=favorites.includes(p.id);
+            const inCartQty=cart.filter(i=>i.pid===p.id).reduce((s,i)=>s+(i.qty||1),0);
+            return(
+              <div key={p.id} className="prod-card" onClick={()=>{if(!groupClosed){setCustom(p);setOpts({spec:'大熱',milk:'一般鮮奶',sugar:'無糖'});}}}>
+                <div style={{position:'relative'}}>
+                  <div onClick={e=>{e.stopPropagation();toggleFav(p.id);}}
+                    style={{position:'absolute',top:6,right:6,fontSize:16,cursor:'pointer',zIndex:2,filter:'drop-shadow(0 1px 2px rgba(0,0,0,.3))'}}>
+                    {isFav?'❤️':'🤍'}
                   </div>
-                  {memberMsg&&(
-                    <div style={{fontSize:12,padding:'6px 10px',borderRadius:6,
-                      background:memberMsg.startsWith('✅')?'#e8f5e9':'#fff8e1',
-                      color:memberMsg.startsWith('✅')?'#2e7d32':'#f57f17'}}>
-                      {memberMsg}
+                  <img src={p.image_url||'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=200&q=80'} alt={p.name}
+                    onError={e=>e.target.src='https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=200&q=80'}/>
+                  {inCartQty>0&&(
+                    <div style={{position:'absolute',bottom:6,right:6,background:'var(--org)',color:'#fff',borderRadius:12,padding:'2px 7px',fontSize:11,fontWeight:700}}>
+                      ×{inCartQty}
                     </div>
                   )}
                 </div>
-            }
-          </div>
-        : <div style={{background:globalMember.customer?'#e8f5e9':'#fff8e1',padding:'10px 16px',display:'flex',justifyContent:'space-between',alignItems:'center',borderBottom:'1px solid #f0f0f0'}}>
-            <div style={{fontSize:13}}>
-              {globalMember.customer
-                ? <span>👤 <strong style={{color:'#2e7d32'}}>{globalMember.customer.name}</strong> · {globalMember.phone}</span>
-                : <span style={{color:'#f57f17'}}>👤 {globalMember.phone} · 新會員，點餐後自動建立</span>
-              }
-            </div>
-            <button onClick={clearMember} style={{background:'none',border:'none',fontSize:13,cursor:'pointer',color:'#aaa',padding:'0 4px'}}>切換</button>
-          </div>
+                <div className="prod-info">
+                  <div className="prod-name">{p.name}</div>
+                  <div className="prod-price">${p.price}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       }
-      {/* Category tabs — 搜尋中隱藏 */}
-      {!isSearching&&(
-        <div className="cat-bar">
-          {cats.map(c=>(
-            <div key={c} className={`cat-item${cat===c?' active':''}`} onClick={()=>setCat(c)}>
-              {c==='我的最愛'?'❤️ 我的最愛':c}
+
+      {/* 非主揪：底部送出餐點 bar */}
+      {inGroup&&!isCreator&&(
+        <div style={{position:'fixed',bottom:64,left:'50%',transform:'translateX(-50%)',width:'100%',maxWidth:420,background:'#fff',borderTop:'2px solid var(--org)',padding:'8px 12px',zIndex:99,boxShadow:'0 -2px 10px rgba(0,0,0,.08)'}}>
+          <div style={{display:'flex',alignItems:'center',gap:8}}>
+            <div style={{flex:1}}>
+              <div style={{fontSize:11,color:'var(--muted)'}}>等待主揪 <strong>{groupRoom.creator_name}</strong> 結帳</div>
+              <div style={{fontSize:12,fontWeight:600,color:'var(--org)'}}>
+                {cart.length>0?`已選 ${cart.reduce((s,i)=>s+(i.qty||1),0)} 份 · NT$${cart.reduce((s,i)=>s+(i.price||0)*(i.qty||1),0)}`:'尚未選擇商品'}
+              </div>
             </div>
-          ))}
+            <button onClick={submitMyOrder} disabled={cart.length===0}
+              style={{padding:'10px 18px',background:cart.length===0?'#ccc':'var(--org)',color:'#fff',border:'none',borderRadius:10,fontSize:13,fontFamily:'inherit',fontWeight:700,cursor:cart.length===0?'not-allowed':'pointer',whiteSpace:'nowrap'}}>
+              ✅ 送出餐點
+            </button>
+          </div>
         </div>
       )}
 
-      {/* 搜尋結果標題 */}
-      {isSearching&&(
-        <div style={{padding:'10px 16px',fontSize:13,color:'var(--muted)'}}>
-          搜尋「<strong style={{color:'var(--org)'}}>{searchQ}</strong>」，找到 {filtered.length} 項商品
-        </div>
-      )}
-
-      {loading?<div className="loading"><div className="spin"/><span>載入中...</span></div>:
-        !isSearching&&cat==='我的最愛'&&filtered.length===0
-          ? <div style={{textAlign:'center',padding:'60px 20px',color:'#aaa'}}>
-              <div style={{fontSize:40,marginBottom:12}}>❤️</div>
-              <div style={{fontWeight:600,marginBottom:6}}>尚無最愛商品</div>
-              <div style={{fontSize:13}}>點擊商品右上角的 ♡ 加入最愛</div>
-            </div>
-          : isSearching&&filtered.length===0
-          ? <div style={{textAlign:'center',padding:'60px 20px',color:'#aaa'}}>
-              <div style={{fontSize:40,marginBottom:12}}>🔍</div>
-              <div style={{fontWeight:600}}>找不到「{searchQ}」相關商品</div>
-            </div>
-          : <div className="prod-grid">
-              {filtered.map(p=>{
-                const isFav=favorites.some(f=>f.id===p.id);
-                return(
-                  <div key={p.id} className="prod-card" style={{position:'relative'}} onClick={()=>{
-                    setCustom(p); setOpts({spec:'大熱',milk:'一般鮮奶',sugar:'無糖'});
-                  }}>
-                    <div onClick={e=>toggleFav(p,e)} style={{
-                      position:'absolute',top:8,right:8,zIndex:10,
-                      width:28,height:28,borderRadius:'50%',
-                      background:'rgba(255,255,255,.85)',
-                      display:'flex',alignItems:'center',justifyContent:'center',
-                      fontSize:16,cursor:'pointer',boxShadow:'0 1px 4px rgba(0,0,0,.15)'}}>
-                      {isFav?'❤️':'🤍'}
-                    </div>
-                    <img src={p.image_url||'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=200&q=80'} alt={p.name} onError={e=>e.target.src='https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=200&q=80'}/>
-                    <div className="prod-info">
-                      <div className="prod-name">{p.name}</div>
-                      <div className="prod-price">{"$"}{p.price} 起</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-      }
-
-      {/* Customize Modal */}
       {custom&&(
         <div className="modal-wrap" onClick={()=>setCustom(null)}>
-          <div className="modal-sheet" onClick={e=>e.stopPropagation()} style={{position:'relative'}}>
-            <button className="modal-close" onClick={()=>setCustom(null)}>✕</button>
-            <div className="modal-title">{custom.name}</div>
-            <div className="modal-meta">
-              熱量：290kcal | 糖：33g | 咖啡因：<span style={{color:'var(--red)'}}>● 紅</span>
-            </div>
-
-            {!FOOD_CATS.includes(custom.category)&&<>
-              <div className="modal-section">
-                <div className="modal-section-title">規格</div>
+          <div className="modal-sheet" onClick={e=>e.stopPropagation()}>
+            <button onClick={()=>setCustom(null)} style={{position:'absolute',top:20,right:20,background:'none',border:'none',fontSize:22,cursor:'pointer',color:'#aaa'}}>✕</button>
+            <div style={{fontSize:20,fontWeight:700,marginBottom:5}}>{custom.name}</div>
+            <div style={{fontSize:12,color:'var(--muted)',marginBottom:18}}>熱量：290kcal · 糖：33g · 咖啡因：<span style={{color:'var(--red)'}}>● 紅</span></div>
+            {!isFood&&<>
+              <div style={{marginBottom:16}}>
+                <div style={{fontWeight:700,fontSize:15,marginBottom:8}}>規格</div>
                 <div className="opt-chips">
                   {[{l:`大熱 $${custom.price}`,v:'大熱'},{l:`大冰 $${custom.price}`,v:'大冰'}].map(o=>(
                     <div key={o.v} className={`opt-chip${opts.spec===o.v?' sel':''}`} onClick={()=>setOpts(p=>({...p,spec:o.v}))}>{o.l}</div>
                   ))}
                 </div>
               </div>
-              <div className="modal-section">
-                <div className="modal-section-title">牛奶升級</div>
+              <div style={{marginBottom:16}}>
+                <div style={{fontWeight:700,fontSize:15,marginBottom:8}}>牛奶升級</div>
                 <div className="opt-chips">
                   {[{l:'小農 +$10',v:'小農鮮奶'},{l:'一般鮮奶',v:'一般鮮奶'}].map(o=>(
                     <div key={o.v} className={`opt-chip${opts.milk===o.v?' sel':''}`} onClick={()=>setOpts(p=>({...p,milk:o.v}))}>{o.l}</div>
                   ))}
                 </div>
               </div>
-              <div className="modal-section">
-                <div className="modal-section-title">甜度</div>
+              <div style={{marginBottom:16}}>
+                <div style={{fontWeight:700,fontSize:15,marginBottom:8}}>甜度</div>
                 <div className="opt-chips">
                   {['無糖','微糖','半糖'].map(v=>(
                     <div key={v} className={`opt-chip${opts.sugar===v?' sel':''}`} onClick={()=>setOpts(p=>({...p,sugar:v}))}>{v}</div>
                   ))}
                 </div>
               </div>
-              <div className="modal-note">⚠️ 提醒：外送過程奶泡會自然消泡。</div>
             </>}
-
-            <button className="add-cart-btn" onClick={addToCart}>
-              加入購物車 ${totalPrice}
+            <button onClick={addToCart} disabled={groupClosed}
+              style={{width:'100%',padding:16,background:groupClosed?'#ccc':'var(--org)',color:'#fff',border:'none',borderRadius:12,fontSize:16,fontFamily:'inherit',fontWeight:700,cursor:groupClosed?'not-allowed':'pointer',marginTop:8}}>
+              {groupClosed?'揪團已關閉':'加入購物車 $'+(custom.price+(isFood?0:milkExtra))}
             </button>
           </div>
         </div>
@@ -785,840 +1250,503 @@ function MenuPage({cart,setCart,showToast,searchQ,globalMember,setGlobalMember,g
   );
 }
 
-/* ── CART PAGE ── */
-function CartPage({cart,setCart,setTab,setConfirmOrder,showToast,globalMember,setGlobalMember,groupRoom,setGroupRoom}){
+function CartPage({cart,setCart,setTab,setConfirmOrder,showToast,globalMember,setGlobalMember,currentStore}){
   const[pickup,setPickup]=useState('self');
   const[pay,setPay]=useState('信用卡');
   const[phone,setPhone]=useState(globalMember?.phone||'');
-  const[loading,setLoading]=useState(false);
-  const[myName,setMyName]=useState(groupRoom?.my_name||groupRoom?.creator_name||'');
-  const[nameInput,setNameInput]=useState('');
-  const[groupItems,setGroupItems]=useState([]);
-  const[groupLoading,setGroupLoading]=useState(false);
-  const[showSummary,setShowSummary]=useState(false);
-  const[savingGroup,setSavingGroup]=useState(false);
-  // 發票欄位
-  const[invType,setInvType]=useState('mobile'); // paper | mobile | donate
-  const[mobileCarrier,setMobileCarrier]=useState('');
-  const[taxId,setTaxId]=useState('');
   const[recipientName,setRecipientName]=useState(globalMember?.customer?.name||'');
-
-  // 揪團模式：載入所有成員點餐
-  useEffect(()=>{
-    if(groupRoom&&showSummary){
-      loadGroupItems();
-      const timer=setInterval(loadGroupItems,8000);
-      return()=>clearInterval(timer);
-    }
-  },[groupRoom,showSummary]);
-
-  async function loadGroupItems(){
-    setGroupLoading(true);
-    const{data}=await db.from('group_items').select('*').eq('room_code',groupRoom.room_code).order('created_at');
-    setGroupItems(data||[]);
-    setGroupLoading(false);
-  }
-
-  async function saveGroupCart(){
-    if(!myName.trim()){showToast('請輸入你的名字');return;}
-    if(cart.length===0){showToast('購物車是空的');return;}
-    setSavingGroup(true);
-    const subtotal=cart.reduce((s,i)=>s+i.price*i.qty,0);
-    // 更新或新增自己的品項
-    const{data:existing}=await db.from('group_items').select('*').eq('room_code',groupRoom.room_code).eq('member_name',myName.trim()).limit(1);
-    if(existing&&existing.length>0){
-      await db.from('group_items').update({items:cart,subtotal}).eq('id',existing[0].id);
-    } else {
-      await db.from('group_items').insert([{room_code:groupRoom.room_code,member_name:myName.trim(),items:cart,subtotal}]);
-    }
-    setSavingGroup(false);
-    showToast('✅ 已儲存到揪團！');
-    setShowSummary(true);
-    loadGroupItems();
-  }
-
-  // 產生可選時間清單：從現在起 +15分，每15分鐘一個選項，到晚上10點
-  function getTimeSlots(mode){
-    const slots=[];
-    const now=new Date();
-    const minMins=mode==='self'?15:40;
-    const earliest=new Date(now.getTime()+minMins*60000);
-
-    // 營業時間：07:30 ~ 20:30
-    const dayStart=new Date(now); dayStart.setHours(7,30,0,0);
-    const dayEnd=new Date(now); dayEnd.setHours(20,30,0,0);
-
-    // 起點：earliest 和 07:30 取較晚者，無條件進位到下個15分鐘
-    let start=new Date(Math.max(earliest.getTime(), dayStart.getTime()));
-    const m=start.getMinutes();
-    const roundedM=Math.ceil(m/15)*15;
-    start.setMinutes(roundedM,0,0);
-    if(roundedM>=60){ start.setHours(start.getHours()+1); start.setMinutes(0,0,0); }
-
-    let cur=new Date(start);
-    while(cur<=dayEnd){
-      slots.push(new Date(cur));
-      cur=new Date(cur.getTime()+15*60000);
-    }
-    return slots;
-  }
-
-  const slots=getTimeSlots(pickup);
+  const[loading,setLoading]=useState(false);
+  const[invType,setInvType]=useState('mobile');
+  const[carrier,setCarrier]=useState('');
+  const[taxId,setTaxId]=useState('');
   const[pickupTime,setPickupTime]=useState(()=>getTimeSlots('self')[0]||new Date());
+  const slots=useMemo(()=>getTimeSlots(pickup),[pickup]);
 
-  function switchPickup(mode){
-    setPickup(mode);
-    const newSlots=getTimeSlots(mode);
-    if(newSlots.length>0) setPickupTime(newSlots[0]);
-  }
+  function switchPickup(v){setPickup(v);const ns=getTimeSlots(v);if(ns.length)setPickupTime(ns[0]);}
 
-  const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
-  function updQty(id,d){
-    setCart(prev=>prev.map(i=>i.id===id?{...i,qty:Math.max(0,i.qty+d)}:i).filter(i=>i.qty>0));
-  }
+  if(cart.length===0)return(
+    <div style={{textAlign:'center',padding:'70px 20px',color:'var(--muted)'}}>
+      <div style={{fontSize:48,marginBottom:12}}>🛒</div>
+      <div style={{fontWeight:600,marginBottom:8}}>購物車是空的</div>
+      <div style={{fontSize:13}}>去點購頁選你喜歡的飲品吧！</div>
+    </div>
+  );
+
+  const total=cart.reduce((s,i)=>s+(i.price||0)*(i.qty||1),0);
+  function updQty(id,d){setCart(prev=>prev.map(i=>i.id===id?{...i,qty:Math.max(0,(i.qty||1)+d)}:i).filter(i=>(i.qty||1)>0));}
+
+  const inp={width:'100%',border:'1.5px solid var(--border)',borderRadius:10,padding:'11px 14px',fontSize:14,fontFamily:'inherit',outline:'none',display:'block'};
+  const focIn=e=>e.target.style.borderColor='var(--org)';
+  const focOut=e=>e.target.style.borderColor='var(--border)';
 
   async function checkout(){
-    if(cart.length===0) return;
+    if(!recipientName.trim()){showToast('請填寫取貨人姓名');return;}
+    if(!phone.trim()){showToast('請填寫聯絡電話');return;}
     setLoading(true);
-    const no='C'+(100+Math.floor(Math.random()*900));
-    const cleanPhone=(phone||'').trim();
-
-    // 寫入訂單（發票資料僅前端顯示，不寫入DB）
-    const{error}=await db.from('orders').insert([{
+    const no='M'+Math.floor(1000000000+Math.random()*9000000000);
+    const insertData={
       order_no:no,
-      member_phone:cleanPhone||null,
+      member_phone:phone||null,
       items:cart,
       total,
       payment_method:pay,
       status:'paid',
       pickup_time:pickupTime.toISOString(),
-    }]);
-    if(error){ showToast('❌ 下單失敗：'+error.message); setLoading(false); return; }
-
-    // 寫入或更新 CRM 顧客資料
-    if(cleanPhone){
-      const{data:existing,error:fetchErr}=await db.from('customers').select('*').eq('phone',cleanPhone).limit(1);
-      if(!fetchErr){
-        if(existing && existing.length>0){
-          const c=existing[0];
-          await db.from('customers').update({
-            total_orders:(c.total_orders||0)+1,
-            total_spent:(c.total_spent||0)+total,
-            last_order_at:new Date().toISOString(),
-          }).eq('phone',cleanPhone);
-        } else {
-          const{error:insErr}=await db.from('customers').insert([{
-            phone:cleanPhone,
-            name:'顧客',
-            total_orders:1,
-            total_spent:total,
-            last_order_at:new Date().toISOString(),
-          }]);
-          if(insErr) showToast('⚠️ 會員建立失敗：'+insErr.message);
-        }
-      }
+      recipient_name:recipientName,
+    };
+    if(invType) insertData.inv_type=invType;
+    if(invType==='mobile'&&carrier) insertData.mobile_carrier=carrier;
+    if(taxId) insertData.tax_id=taxId;
+    const{error}=await db.from('orders').insert([insertData]);
+    if(error){showToast('❌ 下單失敗：'+error.message);setLoading(false);return;}
+    if(phone){
+      const{data:ex}=await db.from('customers').select('*').eq('phone',phone).limit(1);
+      if(ex&&ex.length>0) await db.from('customers').update({total_orders:(ex[0].total_orders||0)+1,total_spent:(ex[0].total_spent||0)+total,last_order_at:new Date().toISOString()}).eq('phone',phone);
+      else await db.from('customers').insert([{phone,name:recipientName||'顧客',total_orders:1,total_spent:total,last_order_at:new Date().toISOString()}]);
     }
-
     setLoading(false);
-    setConfirmOrder({no,total,pickup_time:pickupTime.toISOString(),pickup,pay,items:cart,phone:cleanPhone,invType,mobileCarrier,taxId,recipientName});
-    setCart([]);
-    setPhone('');
-    setTab('confirm');
+    setConfirmOrder({no,total,pickup_time:pickupTime.toISOString(),pickup,pay,items:cart,phone,invType,mobileCarrier:carrier,taxId,recipientName,storeName:currentStore.name,storePhone:currentStore.phone,storeAddr:currentStore.addr});
+    setCart([]);setPhone('');setTab('confirm');
   }
-
-  // 揪團非主揪：只顯示「我的點餐」，完全不能結帳
-  if(groupRoom&&!groupRoom.isCreator){
-    return(
-      <div className="cart-page" style={{paddingTop:16,paddingBottom:80}}>
-        <div style={{background:'#fff3e0',borderRadius:12,padding:14,margin:'0 0 12px',border:'1.5px solid var(--org)',display:'flex',alignItems:'center',gap:10}}>
-          <span style={{fontSize:20}}>🎉</span>
-          <div>
-            <div style={{fontWeight:700,fontSize:14,color:'var(--org)'}}>揪團中：{groupRoom.room_code}</div>
-            <div style={{fontSize:12,color:'var(--muted)',marginTop:2}}>等待主揪 <strong>{groupRoom.creator_name}</strong> 結帳</div>
-          </div>
-        </div>
-        {/* 顯示自己的購物車內容 */}
-        <div className="cart-section">
-          <div style={{fontWeight:700,fontSize:15,marginBottom:12}}>我的點餐</div>
-          {cart.length===0
-            ? <div style={{textAlign:'center',padding:'20px 0',color:'var(--muted)',fontSize:13}}>還沒有點餐，去點購頁選商品</div>
-            : <>
-                {cart.map(item=>(
-                  <div key={item.id}>
-                    <div className="cart-row">
-                      <div style={{flex:1}}>
-                        <div className="cart-item-name">{item.name} x {item.qty}</div>
-                        {item.opts&&<div style={{fontSize:12,color:'var(--muted)',marginTop:2}}>
-                          {!item.isFood&&[item.opts.spec,item.opts.sugar,item.opts.milk].filter(Boolean).join(' / ')}
-                        </div>}
-                      </div>
-                      <div style={{display:'flex',alignItems:'center',gap:10}}>
-                        <div style={{display:'flex',alignItems:'center',gap:6}}>
-                          <button onClick={()=>updQty(item.id,-1)} style={{width:24,height:24,border:'1px solid var(--border)',borderRadius:4,background:'#fff',cursor:'pointer',fontSize:16,display:'flex',alignItems:'center',justifyContent:'center'}}>−</button>
-                          <span style={{fontSize:14,fontWeight:600,minWidth:16,textAlign:'center'}}>{item.qty}</span>
-                          <button onClick={()=>updQty(item.id,1)} style={{width:24,height:24,border:'1px solid var(--border)',borderRadius:4,background:'#fff',cursor:'pointer',fontSize:16,display:'flex',alignItems:'center',justifyContent:'center'}}>+</button>
-                        </div>
-                        <div className="cart-price">${item.price*item.qty}</div>
-                      </div>
-                    </div>
-                    <div className="divider"/>
-                  </div>
-                ))}
-                <div className="cart-total-row">
-                  <div className="cart-total-label">我的小計</div>
-                  <div className="cart-total-price">${total}</div>
-                </div>
-              </>
-          }
-        </div>
-        <div style={{background:'#f5f5f5',borderRadius:12,padding:16,textAlign:'center'}}>
-          <div style={{fontSize:13,color:'var(--muted)',marginBottom:4}}>✅ 點餐內容已自動同步至揪團</div>
-          <div style={{fontSize:12,color:'var(--muted)'}}>主揪確認所有人的點餐後就會結帳</div>
-        </div>
-      </div>
-    );
-  }
-
-  if(cart.length===0) return(
-    <div className="cart-page" style={{paddingTop:20}}>
-      <div className="empty-cart">
-        <div className="ei">🛒</div>
-        <div style={{fontWeight:600,marginBottom:8}}>購物車是空的</div>
-        <div style={{fontSize:13,color:'var(--muted)'}}>去點購頁選你喜歡的飲品吧！</div>
-      </div>
-    </div>
-  );
 
   return(
-    <div className="cart-page" style={{paddingTop:16}}>
-      {/* Items */}
+    <div style={{padding:'12px 16px 16px'}}>
+      {/* 品項 */}
       <div className="cart-section">
         {cart.map(item=>(
           <div key={item.id}>
             <div className="cart-row">
               <div style={{flex:1}}>
-                <div className="cart-item-name">{item.name} x {item.qty}</div>
-                <div className="cart-promo">✨ 黑卡優惠：第二杯半價</div>
+                <div style={{fontWeight:600,fontSize:14}}>{item.name} × {item.qty||1}</div>
+                {item.opts&&<div style={{fontSize:11,color:'var(--muted)',marginTop:2}}>{!item.isFood&&[item.opts.spec,item.opts.sugar,item.opts.milk].filter(Boolean).join(' / ')}</div>}
               </div>
-              <div style={{display:'flex',alignItems:'center',gap:10}}>
-                <div style={{display:'flex',alignItems:'center',gap:6}}>
-                  <button onClick={()=>updQty(item.id,-1)} style={{width:24,height:24,border:'1px solid var(--border)',borderRadius:4,background:'#fff',cursor:'pointer',fontSize:16,display:'flex',alignItems:'center',justifyContent:'center'}}>−</button>
-                  <span style={{fontSize:14,fontWeight:600,minWidth:16,textAlign:'center'}}>{item.qty}</span>
-                  <button onClick={()=>updQty(item.id,1)} style={{width:24,height:24,border:'1px solid var(--border)',borderRadius:4,background:'#fff',cursor:'pointer',fontSize:16,display:'flex',alignItems:'center',justifyContent:'center'}}>+</button>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginLeft:8}}>
+                <div style={{display:'flex',alignItems:'center',gap:5}}>
+                  <button onClick={()=>updQty(item.id,-1)} style={{width:24,height:24,border:'1px solid var(--border)',borderRadius:4,background:'#fff',cursor:'pointer',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center'}}>−</button>
+                  <span style={{fontSize:13,fontWeight:600,minWidth:14,textAlign:'center'}}>{item.qty||1}</span>
+                  <button onClick={()=>updQty(item.id,1)} style={{width:24,height:24,border:'1px solid var(--border)',borderRadius:4,background:'#fff',cursor:'pointer',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center'}}>+</button>
                 </div>
-                <div className="cart-price">${item.price*item.qty}</div>
+                <span style={{fontSize:14,fontWeight:600,color:'var(--org)'}}>NT${(item.price||0)*(item.qty||1)}</span>
               </div>
             </div>
             <div className="divider"/>
           </div>
         ))}
-        <div className="cart-total-row">
-          <div className="cart-total-label">總金額</div>
-          <div className="cart-total-price">${total}</div>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <span style={{fontSize:15,fontWeight:700}}>總金額</span>
+          <span style={{fontSize:18,fontWeight:700,color:'var(--org)'}}>NT${total}</span>
         </div>
       </div>
 
-      {/* Pickup */}
+      {/* 取貨人 */}
       <div className="cart-section">
-        <div className="pickup-toggle" style={{marginBottom:16}}>
-          <button className={`pickup-btn${pickup==='self'?' active':''}`} onClick={()=>switchPickup('self')}>自取</button>
-          <button className={`pickup-btn${pickup==='delivery'?' active':''}`} onClick={()=>switchPickup('delivery')}>外送</button>
-        </div>
+        <div style={{fontWeight:700,fontSize:14,marginBottom:8}}>取貨人姓名</div>
+        <input style={inp} value={recipientName} onChange={e=>setRecipientName(e.target.value)} placeholder="例：陳小明" onFocus={focIn} onBlur={focOut}/>
+        <div style={{fontWeight:700,fontSize:14,marginBottom:8,marginTop:12}}>聯絡電話</div>
+        <input style={inp} value={phone} onChange={e=>setPhone(e.target.value)} placeholder="0912345678" onFocus={focIn} onBlur={focOut}/>
+        <div style={{fontSize:11,color:'var(--muted)',marginTop:4,textAlign:'right'}}>只支援台灣手機號碼</div>
+      </div>
 
-        {/* 取餐時間選擇 */}
-        <div style={{marginBottom:16}}>
-          <div className="pay-section-title" style={{marginBottom:4}}>
-            {pickup==='self'?'🕐 選擇取餐時間':'🛵 選擇外送時間'}
-          </div>
-          <div style={{fontSize:12,color:'var(--muted)',marginBottom:10}}>
-            營業時間 07:30–20:30 · 最早 {pickup==='self'?'15':'40'} 分鐘後
-          </div>
-          {slots.length===0
-            ? <div style={{background:'#f5f5f5',borderRadius:10,padding:16,textAlign:'center',fontSize:13,color:'var(--muted)'}}>
-                今日已無可選時段（營業至 20:30）
-              </div>
-            : <div style={{overflowX:'auto',WebkitOverflowScrolling:'touch',paddingBottom:6}}
-                className="time-scroll-hide">
-                <div style={{display:'flex',gap:8,width:'max-content',padding:'4px 2px'}}>
-                  {slots.map((s,i)=>{
-                    const label=s.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
-                    const sel=pickupTime&&s.getTime()===pickupTime.getTime();
-                    return(
-                      <button key={i} onClick={()=>setPickupTime(s)}
-                        style={{
-                          flexShrink:0,
-                          padding:'10px 14px',
-                          border:`1.5px solid ${sel?'var(--org)':'#e0e0e0'}`,
-                          borderRadius:10,
-                          fontSize:14,fontWeight:sel?700:400,
-                          color:sel?'#fff':'var(--text)',
-                          background:sel?'var(--org)':'#fff',
-                          cursor:'pointer',
-                          fontFamily:'inherit',
-                          transition:'all .12s',
-                          whiteSpace:'nowrap',
-                          boxShadow:sel?'0 2px 8px rgba(232,119,34,.3)':'none',
-                        }}>
-                        {label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-          }
-          {pickupTime&&slots.length>0&&(
-            <div style={{marginTop:8,display:'flex',alignItems:'center',gap:8,background:'var(--org-light)',padding:'8px 12px',borderRadius:8}}>
-              <span style={{fontSize:16}}>✅</span>
-              <span style={{fontSize:13,color:'var(--org)',fontWeight:600}}>
-                已選取餐時間：{pickupTime.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}
-              </span>
-            </div>
-          )}
-        </div>
-
-        <div className="pay-section-title">支付方式</div>
-        <div className="pay-chips">
-          {['LINE Pay','信用卡'].map(m=>(
-            <div key={m} className={`pay-chip${pay===m?' sel':''}`} onClick={()=>setPay(m)}>{m}</div>
+      {/* 取餐方式 */}
+      <div className="cart-section">
+        <div style={{fontWeight:700,fontSize:14,marginBottom:8}}>取貨方式</div>
+        <div style={{display:'flex',gap:10,marginBottom:10}}>
+          {[{v:'self',l:'自取'},{v:'delivery',l:'外送'}].map(o=>(
+            <button key={o.v} onClick={()=>switchPickup(o.v)}
+              style={{flex:1,padding:'10px',border:`1.5px solid ${pickup===o.v?'var(--org)':'var(--border)'}`,borderRadius:10,background:pickup===o.v?'var(--org-light)':'#fff',color:pickup===o.v?'var(--org)':'var(--text)',fontFamily:'inherit',fontSize:13,cursor:'pointer',fontWeight:pickup===o.v?700:400}}>
+              {o.l}
+            </button>
           ))}
         </div>
-      </div>
-
-      {/* 會員電話 */}
-      <div className="cart-section">
-        {/* 揪團模式：顯示名字輸入 */}
-        {groupRoom&&(
-          <div style={{background:'#fff3e0',borderRadius:12,padding:16,marginBottom:12,border:'1.5px solid var(--org)'}}>
-            <div style={{fontWeight:700,marginBottom:8,color:'var(--org)'}}>🎉 揪團中：{groupRoom.room_code}</div>
-            <div style={{fontSize:13,color:'var(--muted)',marginBottom:10}}>加入購物車的商品會自動存入揪團，無需額外操作</div>
-            <div style={{display:'flex',gap:8,alignItems:'center'}}>
-              <input value={myName} onChange={e=>setMyName(e.target.value)}
-                placeholder="你的名字（必填）"
-                style={{flex:1,border:'1.5px solid var(--border)',borderRadius:8,padding:'9px 12px',fontSize:14,fontFamily:'inherit',outline:'none'}}/>
+        <div style={{fontWeight:700,fontSize:14,marginBottom:6}}>🕐 取餐時間</div>
+        {slots.length===0
+          ?<div style={{background:'#f5f5f5',borderRadius:8,padding:10,textAlign:'center',fontSize:12,color:'var(--muted)'}}>今日已無可選時段</div>
+          :<div style={{overflowX:'auto',paddingBottom:4}} className="time-scroll-hide">
+            <div style={{display:'flex',gap:7,width:'max-content'}}>
+              {slots.map((s,i)=>{const label=s.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});const sel=pickupTime&&s.getTime()===pickupTime.getTime();return(
+                <button key={i} onClick={()=>setPickupTime(s)}
+                  style={{flexShrink:0,padding:'8px 12px',border:`1.5px solid ${sel?'var(--org)':'#e0e0e0'}`,borderRadius:10,fontSize:12,fontWeight:sel?700:400,color:sel?'#fff':'var(--text)',background:sel?'var(--org)':'#fff',cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}}>
+                  {label}
+                </button>
+              );})}
             </div>
           </div>
-        )}
+        }
+      </div>
 
-        <div className="pay-section-title" style={{marginBottom:6}}>👤 會員電話（選填）</div>
-        <div style={{fontSize:12,color:'var(--muted)',marginBottom:10}}>填入電話可累積消費紀錄，享會員優惠</div>
-        <div style={{display:'flex',gap:8,alignItems:'center'}}>
-          <input
-            value={phone} onChange={e=>setPhone(e.target.value)}
-            placeholder="輸入手機號碼"
-            style={{flex:1,border:'1.5px solid var(--border)',borderRadius:8,padding:'10px 14px',fontSize:14,fontFamily:'inherit',outline:'none'}}
-            onFocus={e=>e.target.style.borderColor='var(--org)'}
-            onBlur={e=>e.target.style.borderColor='var(--border)'}
-          />
+      {/* 付款方式 */}
+      <div className="cart-section">
+        <div style={{fontWeight:700,fontSize:14,marginBottom:8}}>支付方式</div>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          {['LINE Pay','信用卡'].map(m=><div key={m} className={`pay-chip${pay===m?' sel':''}`} onClick={()=>setPay(m)}>{m}</div>)}
         </div>
       </div>
 
-      {/* 發票設定 */}
+      {/* 發票 */}
       <div className="cart-section">
-        <div className="pay-section-title" style={{marginBottom:12}}>🧾 發票設定</div>
-        <div style={{display:'flex',gap:8,marginBottom:12}}>
+        <div style={{fontWeight:700,fontSize:14,marginBottom:8}}>🧾 發票設定</div>
+        <div style={{display:'flex',gap:8,marginBottom:8}}>
           {[{v:'mobile',l:'手機載具'},{v:'paper',l:'紙本發票'},{v:'donate',l:'愛心捐贈'}].map(o=>(
             <button key={o.v} onClick={()=>setInvType(o.v)}
-              style={{flex:1,padding:'10px 4px',border:`1.5px solid ${invType===o.v?'var(--org)':'var(--border)'}`,borderRadius:8,fontSize:13,background:invType===o.v?'var(--org-light)':'#fff',color:invType===o.v?'var(--org)':'var(--text)',fontFamily:'inherit',cursor:'pointer',fontWeight:invType===o.v?700:400}}>
+              style={{flex:1,padding:'8px 2px',border:`1.5px solid ${invType===o.v?'var(--org)':'var(--border)'}`,borderRadius:8,fontSize:11,background:invType===o.v?'var(--org-light)':'#fff',color:invType===o.v?'var(--org)':'var(--text)',fontFamily:'inherit',cursor:'pointer',fontWeight:invType===o.v?700:400}}>
               {o.l}
             </button>
           ))}
         </div>
         {invType==='mobile'&&(
-          <div style={{marginBottom:10}}>
-            <div style={{fontSize:12,color:'var(--muted)',marginBottom:6}}>手機條碼載具（/+7碼英數）</div>
-            <input value={mobileCarrier} onChange={e=>setMobileCarrier(e.target.value.toUpperCase())}
-              placeholder="/TS9EZ5L"
-              style={{width:'100%',border:'1.5px solid var(--border)',borderRadius:8,padding:'10px 14px',fontSize:14,fontFamily:'monospace',outline:'none'}}
-              onFocus={e=>e.target.style.borderColor='var(--org)'}
-              onBlur={e=>e.target.style.borderColor='var(--border)'}/>
-          </div>
+          <input value={carrier} onChange={e=>setCarrier(e.target.value.toUpperCase())} placeholder="/TS9EZ5L"
+            style={{...inp,fontFamily:'monospace',marginBottom:8}} onFocus={focIn} onBlur={focOut}/>
         )}
-        {invType==='donate'&&(
-          <div style={{fontSize:13,color:'var(--muted)',padding:'8px 12px',background:'#f5f5f5',borderRadius:8}}>
-            發票將捐贈給社福機構，感謝您的愛心 ❤️
-          </div>
-        )}
-        <div style={{marginTop:10}}>
-          <div style={{fontSize:12,color:'var(--muted)',marginBottom:6}}>統一編號（公司戶選填）</div>
-          <input value={taxId} onChange={e=>setTaxId(e.target.value.replace(/\D/g,'').slice(0,8))}
-            placeholder="輸入8位數統一編號"
-            style={{width:'100%',border:'1.5px solid var(--border)',borderRadius:8,padding:'10px 14px',fontSize:14,fontFamily:'inherit',outline:'none'}}
-            onFocus={e=>e.target.style.borderColor='var(--org)'}
-            onBlur={e=>e.target.style.borderColor='var(--border)'}/>
-        </div>
-        <div style={{marginTop:10}}>
-          <div style={{fontSize:12,color:'var(--muted)',marginBottom:6}}>取貨人姓名</div>
-          <input value={recipientName} onChange={e=>setRecipientName(e.target.value)}
-            placeholder="例：陳小明"
-            style={{width:'100%',border:'1.5px solid var(--border)',borderRadius:8,padding:'10px 14px',fontSize:14,fontFamily:'inherit',outline:'none'}}
-            onFocus={e=>e.target.style.borderColor='var(--org)'}
-            onBlur={e=>e.target.style.borderColor='var(--border)'}/>
-        </div>
+        {invType==='donate'&&<div style={{fontSize:12,color:'var(--muted)',padding:'7px 10px',background:'#f5f5f5',borderRadius:8,marginBottom:8}}>發票將捐贈給社福機構，感謝您的愛心 ❤️</div>}
+        <div style={{fontSize:12,color:'var(--muted)',marginBottom:5}}>統一編號（公司戶選填）</div>
+        <input value={taxId} onChange={e=>setTaxId(e.target.value.replace(/\D/g,'').slice(0,8))} placeholder="輸入8位數統一編號"
+          style={inp} onFocus={focIn} onBlur={focOut}/>
       </div>
 
-      <button className="checkout-btn" onClick={checkout} disabled={loading||!pickupTime}>
+      <button onClick={checkout} disabled={loading||slots.length===0}
+        style={{width:'100%',padding:16,background:loading||slots.length===0?'#ccc':'var(--org)',color:'#fff',border:'none',borderRadius:12,fontSize:15,fontFamily:'inherit',fontWeight:700,cursor:(loading||slots.length===0)?'not-allowed':'pointer',marginTop:4}}>
         {loading?'處理中...':'立即結帳'}
       </button>
     </div>
   );
 }
 
-/* ── CONFIRM PAGE ── */
-function ConfirmPage({order,setTab}){
-  if(!order) return null;
-  const pickup=new Date(order.pickup_time);
-  const timeStr=pickup.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
-  const orderNum=order.no.replace('C','');
-
-  return(
-    <div className="confirm-page" style={{paddingTop:16}}>
-      {/* Items summary */}
-      <div className="cart-section">
-        {(order.items||[]).map((item,i)=>(
-          <div key={i}>
-            <div className="cart-row">
-              <div className="cart-item-name">{item.name} x {item.qty}</div>
-              <div className="cart-price">${item.price*item.qty}</div>
-            </div>
-            <div className="cart-promo">✨ 黑卡優惠：第二杯半價</div>
-            <div className="divider"/>
-          </div>
-        ))}
-        <div className="cart-total-row">
-          <div className="cart-total-label">總金額</div>
-          <div className="cart-total-price">${order.total}</div>
-        </div>
-      </div>
-
-      {/* Order number */}
-      <div className="confirm-block">
-        <div className="confirm-block-title">訂單編號</div>
-        <div className="confirm-block-val">{orderNum}</div>
-      </div>
-
-      {/* Pickup time */}
-      <div className="confirm-block">
-        <div className="confirm-block-title">取餐時間</div>
-        <div className="confirm-block-time">{timeStr}</div>
-      </div>
-
-      <button style={{width:'100%',padding:16,background:'#f5f5f5',border:'none',borderRadius:12,fontSize:15,fontFamily:'inherit',fontWeight:600,cursor:'pointer',marginTop:4}} onClick={()=>setTab('home')}>
-        回首頁
-      </button>
-    </div>
-  );
-}
-
-
-/* ── MY PAGE ── */
+/* ─── MY PAGE ─── */
 function MyPage({globalMember,setGlobalMember}){
-  const[phone,setPhone]=useState(globalMember?.phone||'');
   const[inputPhone,setInputPhone]=useState('');
   const[customer,setCustomer]=useState(globalMember?.customer||null);
-  const[orders,setOrders]=useState(globalMember?.orders||[]);
   const[loading,setLoading]=useState(false);
-  const[subPage,setSubPage]=useState('main');
-  const[editForm,setEditForm]=useState({name:globalMember?.customer?.name||'',gender:globalMember?.customer?.gender||'-',phone:globalMember?.phone||''});
-  const[saving,setSaving]=useState(false);
   const[msg,setMsg]=useState('');
-
-  // 若點餐頁已查詢到會員，直接同步進來
-  useEffect(()=>{
-    if(globalMember&&!customer){
-      setPhone(globalMember.phone);
-      setCustomer(globalMember.customer);
-      setOrders(globalMember.orders||[]);
-      if(globalMember.customer) setEditForm({name:globalMember.customer.name||'',gender:globalMember.customer.gender||'-',phone:globalMember.phone});
-    }
-  },[globalMember]);
+  const[orders,setOrders]=useState([]);
+  const[subPage,setSubPage]=useState(null); // null=menu, 'profile','account','history','favorites','coupons','membercard','address','carrier','payment'
+  // editable profile fields
+  const[editName,setEditName]=useState('');
+  const[editPhone,setEditPhone]=useState('');
+  const[editBirth,setEditBirth]=useState('');
+  const[editEmail,setEditEmail]=useState('');
+  const[editCarrier,setEditCarrier]=useState('');
+  const[saving,setSaving]=useState(false);
+  const[saveMsg,setSaveMsg]=useState('');
 
   async function login(){
-    if(!inputPhone.trim()) return;
-    setLoading(true); setMsg('');
-    const{data,error}=await db.from('customers').select('*').eq('phone',inputPhone.trim()).limit(1);
-    if(error||!data||data.length===0){ setMsg('❌ 找不到此電話的會員資料'); setLoading(false); return; }
-    const c=data[0];
-    setCustomer(c); setPhone(inputPhone.trim());
-    setEditForm({name:c.name||'',gender:c.gender||'-',phone:inputPhone.trim()});
-    const{data:od}=await db.from('orders').select('*').eq('member_phone',inputPhone.trim()).order('created_at',{ascending:false}).limit(20);
+    if(!inputPhone.trim())return;setLoading(true);setMsg('');
+    const{data}=await db.from('customers').select('*').eq('phone',inputPhone.trim()).limit(1);
+    if(!data||data.length===0){setMsg('❌ 找不到此電話的會員資料');setLoading(false);return;}
+    const c=data[0];setCustomer(c);
+    setEditName(c.name||'');setEditPhone(c.phone||'');setEditBirth(c.birthday||'');setEditEmail(c.email||'');setEditCarrier(c.carrier||'');
+    const{data:od}=await db.from('orders').select('*').eq('member_phone',inputPhone.trim()).order('created_at',{ascending:false}).limit(30);
     setOrders(od||[]);
-    // 同步回全域
     setGlobalMember&&setGlobalMember({phone:inputPhone.trim(),customer:c,orders:od||[]});
     setLoading(false);
   }
 
-  async function saveEdit(){
-    setSaving(true);
-    await db.from('customers').update({name:editForm.name,gender:editForm.gender}).eq('phone',phone);
-    setCustomer(c=>({...c,name:editForm.name,gender:editForm.gender}));
-    setGlobalMember&&setGlobalMember(g=>g?{...g,customer:{...g.customer,name:editForm.name,gender:editForm.gender}}:g);
-    setSaving(false); setSubPage('main');
-  }
-
   function getLevel(spent){
-    if(spent>=5000) return{l:'黑卡',c:'#fff',bg:'linear-gradient(135deg,#1a1a1a,#444)',off:'3% OFF'};
-    if(spent>=2000) return{l:'金卡',c:'#7a5500',bg:'linear-gradient(135deg,#f9d423,#e3a000)',off:'2% OFF'};
-    if(spent>=500)  return{l:'銀卡',c:'#445',bg:'linear-gradient(135deg,#bdc3c7,#909ca5)',off:'1% OFF'};
-    return{l:'一般會員',c:'#555',bg:'linear-gradient(135deg,#e0e0e0,#bdbdbd)',off:''};
+    if(spent>=5000)return{l:'黑卡會員',c:'#fff',bg:'linear-gradient(135deg,#1a1a1a,#3a3a3a)',badge:'⬛'};
+    if(spent>=2000)return{l:'金卡會員',c:'#7a5500',bg:'linear-gradient(135deg,#f9d423,#e3a000)',badge:'🥇'};
+    if(spent>=500)return{l:'銀卡會員',c:'#445',bg:'linear-gradient(135deg,#bdc3c7,#909ca5)',badge:'🥈'};
+    return{l:'一般會員',c:'#555',bg:'linear-gradient(135deg,#e0e0e0,#bdbdbd)',badge:'👤'};
   }
 
-  function BackHeader({title}){
-    return(
-      <div style={{display:'flex',alignItems:'center',gap:8,padding:'12px 0 20px',background:'#fff',position:'sticky',top:52,zIndex:10,marginBottom:4}}>
-        <button onClick={()=>setSubPage('main')} style={{background:'none',border:'none',fontSize:22,cursor:'pointer',padding:'0 8px'}}>←</button>
-        <span style={{fontWeight:700,fontSize:16}}>{title}</span>
-      </div>
-    );
+  async function saveProfile(){
+    setSaving(true);setSaveMsg('');
+    const{error}=await db.from('customers').update({name:editName,birthday:editBirth,email:editEmail}).eq('phone',editPhone);
+    setSaving(false);
+    if(!error){setSaveMsg('✅ 儲存成功');setCustomer(c=>({...c,name:editName,birthday:editBirth,email:editEmail}));}
+    else setSaveMsg('❌ 儲存失敗：'+error.message);
   }
+
+  async function saveCarrier(){
+    setSaving(true);setSaveMsg('');
+    const{error}=await db.from('customers').update({carrier:editCarrier}).eq('phone',editPhone);
+    setSaving(false);
+    if(!error){setSaveMsg('✅ 載具已儲存');setCustomer(c=>({...c,carrier:editCarrier}));}
+    else setSaveMsg('❌ '+error.message);
+  }
+
+  function logout(){setCustomer(null);setInputPhone('');setOrders([]);setSubPage(null);setGlobalMember&&setGlobalMember(null);}
+
+  const inp2={width:'100%',border:'1.5px solid var(--border)',borderRadius:10,padding:'12px 14px',fontSize:15,fontFamily:'inherit',outline:'none',display:'block',marginBottom:12};
 
   // ── 未登入 ──
   if(!customer) return(
-    <div className="my-page">
+    <div style={{padding:'20px 16px'}}>
       <div style={{textAlign:'center',marginBottom:24}}>
-        <div style={{width:72,height:72,borderRadius:'50%',background:'#e0e0e0',display:'flex',alignItems:'center',justifyContent:'center',fontSize:32,margin:'0 auto 12px'}}>👤</div>
-        <div style={{fontWeight:700,fontSize:18,marginBottom:4}}>LOUISA COFFEE</div>
-        <div style={{fontSize:13,color:'#888'}}>輸入手機號碼查詢會員資料</div>
+        <div style={{width:72,height:72,borderRadius:'50%',background:'linear-gradient(135deg,var(--org),var(--org-dark)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:32,margin:'0 auto 12px',color:'#fff'}}>☕</div>
+        <div style={{fontWeight:700,fontSize:17,marginBottom:4}}>LOUISA COFFEE</div>
+        <div style={{fontSize:13,color:'#888'}}>登入以查看會員資料</div>
       </div>
-      <div style={{background:'#fff',borderRadius:12,padding:16,marginBottom:12}}>
-        <div style={{fontSize:13,color:'#888',marginBottom:8}}>手機號碼</div>
-        <input value={inputPhone} onChange={e=>setInputPhone(e.target.value)}
-          placeholder="例：0912345678"
-          style={{width:'100%',border:'1.5px solid #e0e0e0',borderRadius:8,padding:'12px 14px',fontSize:16,fontFamily:'inherit',outline:'none',marginBottom:12}}
-          onKeyDown={e=>e.key==='Enter'&&login()}/>
-        {msg&&<div style={{color:'#e53935',fontSize:13,marginBottom:8}}>{msg}</div>}
+      <div className="cart-section">
+        <div style={{fontWeight:600,fontSize:14,marginBottom:8,color:'var(--muted)'}}>手機號碼</div>
+        <input value={inputPhone} onChange={e=>setInputPhone(e.target.value)} placeholder="例：0912345678"
+          style={inp2} onKeyDown={e=>e.key==='Enter'&&login()}
+          onFocus={e=>e.target.style.borderColor='var(--org)'} onBlur={e=>e.target.style.borderColor='var(--border)'}/>
+        {msg&&<div style={{color:'var(--red)',fontSize:13,marginBottom:8}}>{msg}</div>}
         <button onClick={login} disabled={loading}
-          style={{width:'100%',padding:14,background:'var(--org)',color:'#fff',border:'none',borderRadius:10,fontSize:16,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
+          style={{width:'100%',padding:14,background:'var(--org)',color:'#fff',border:'none',borderRadius:10,fontSize:15,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
           {loading?'查詢中...':'登入'}
         </button>
       </div>
-      <div style={{fontSize:12,color:'#aaa',textAlign:'center'}}>點餐結帳時填入電話即可成為會員</div>
     </div>
   );
 
   const lv=getLevel(customer.total_spent||0);
 
-  // ── 個人檔案 ──
-  if(subPage==='profile') return(
-    <div className="my-page" style={{paddingTop:0}}>
-      <BackHeader title="個人檔案"/>
-      <div style={{background:'#fff',borderRadius:12,padding:20,marginBottom:12}}>
-        <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:20,paddingBottom:16,borderBottom:'1px solid #f0f0f0'}}>
-          <div style={{width:64,height:64,borderRadius:'50%',background:'var(--org)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,color:'#fff',fontWeight:700}}>
-            {(customer.name||'顧')[0]}
-          </div>
-          <div>
-            <div style={{fontWeight:700,fontSize:18}}>{customer.name||'顧客'}</div>
-            <div style={{fontSize:13,color:'#888',marginTop:2}}>{phone}</div>
-          </div>
-        </div>
-        {[{l:'姓名',k:'name',editable:true},{l:'性別',k:'gender',editable:true,opts:['男','女','-']},{l:'手機號碼',k:'phone',editable:false}].map(f=>(
-          <div key={f.k} style={{marginBottom:16}}>
-            <div style={{fontSize:13,color:'#888',marginBottom:6}}>{f.l}</div>
-            {f.editable&&!f.opts&&<input value={editForm[f.k]||''} onChange={e=>setEditForm(fm=>({...fm,[f.k]:e.target.value}))}
-              style={{width:'100%',border:'1.5px solid #e0e0e0',borderRadius:8,padding:'10px 14px',fontSize:15,fontFamily:'inherit',outline:'none'}}/>}
-            {f.editable&&f.opts&&<div style={{display:'flex',gap:8}}>
-              {f.opts.map(o=><button key={o} onClick={()=>setEditForm(fm=>({...fm,[f.k]:o}))}
-                style={{padding:'8px 20px',border:`1.5px solid ${editForm[f.k]===o?'var(--org)':'#e0e0e0'}`,borderRadius:8,background:'#fff',color:editForm[f.k]===o?'var(--org)':'#555',fontFamily:'inherit',fontSize:14,cursor:'pointer',fontWeight:editForm[f.k]===o?700:400}}>{o}</button>)}
-            </div>}
-            {!f.editable&&<div style={{padding:'10px 14px',background:'#f5f5f5',borderRadius:8,fontSize:15,color:'#888'}}>{phone}</div>}
-          </div>
-        ))}
-        <button onClick={saveEdit} disabled={saving}
-          style={{width:'100%',padding:14,background:'var(--org)',color:'#fff',border:'none',borderRadius:10,fontSize:15,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
-          {saving?'儲存中...':'儲存變更'}
-        </button>
+  // ── 子頁面 ──
+  if(subPage){
+    const backBtn=(
+      <div style={{display:'flex',alignItems:'center',gap:8,padding:'14px 16px 8px',cursor:'pointer'}} onClick={()=>{setSubPage(null);setSaveMsg('');}}>
+        <span style={{fontSize:20}}>←</span><span style={{fontWeight:600,fontSize:15}}>返回</span>
       </div>
-    </div>
-  );
+    );
 
-  // ── 帳號管理 ──
-  if(subPage==='account') return(
-    <div className="my-page" style={{paddingTop:0}}>
-      <BackHeader title="帳號管理"/>
-      <div style={{background:'#fff',borderRadius:12,overflow:'hidden',marginBottom:12}}>
-        {[{l:'更改密碼',i:'🔒'},{l:'通知設定',i:'🔔'},{l:'隱私設定',i:'🛡️'}].map((item,idx,arr)=>(
-          <div key={item.l} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',borderBottom:idx<arr.length-1?'1px solid #f5f5f5':'none',cursor:'pointer'}}>
-            <div style={{display:'flex',alignItems:'center',gap:12}}><span style={{fontSize:18}}>{item.i}</span><span style={{fontSize:15}}>{item.l}</span></div>
-            <span style={{color:'#aaa',fontSize:18}}>›</span>
+    if(subPage==='profile') return(
+      <div style={{paddingBottom:20}}>
+        {backBtn}
+        <div style={{padding:'0 16px'}}>
+          <div style={{textAlign:'center',marginBottom:20}}>
+            <div style={{width:80,height:80,borderRadius:'50%',background:lv.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:36,margin:'0 auto 8px'}}>{lv.badge}</div>
+            <div style={{fontWeight:700,fontSize:16}}>{customer.name||'會員'}</div>
+            <div style={{fontSize:12,color:'var(--muted)'}}>{customer.phone}</div>
           </div>
-        ))}
-      </div>
-      <div style={{background:'#fff',borderRadius:12,overflow:'hidden'}}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',cursor:'pointer',color:'#e53935'}}
-          onClick={()=>{setCustomer(null);setPhone('');setInputPhone('');setOrders([]);setSubPage('main');}}>
-          <div style={{display:'flex',alignItems:'center',gap:12}}><span style={{fontSize:18}}>🗑️</span><span style={{fontSize:15}}>刪除帳號</span></div>
-        </div>
-      </div>
-    </div>
-  );
-
-  // ── 曾點過 ──
-  if(subPage==='history') return(
-    <div className="my-page" style={{paddingTop:0}}>
-      <BackHeader title="曾點過"/>
-      {orders.length===0
-        ? <div style={{textAlign:'center',color:'#aaa',padding:'40px 0'}}>尚無訂單紀錄</div>
-        : orders.map(o=>{
-            const items=(o.items||[]).map(i=>i.name+'×'+(i.qty||1)).join('、');
-            const t=new Date(o.created_at).toLocaleDateString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
-            const statusMap={paid:'製作中',done:'已完成',unpaid:'待付款'};
-            return(
-              <div key={o.id} style={{background:'#fff',borderRadius:12,padding:16,marginBottom:10}}>
-                <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
-                  <span style={{fontWeight:700,color:'var(--org)'}}>{o.order_no}</span>
-                  <span style={{fontSize:12,color:'#888'}}>{t}</span>
-                </div>
-                <div style={{fontSize:13,color:'#555',marginBottom:8,lineHeight:1.6}}>{items}</div>
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                  <span style={{fontSize:12,padding:'3px 10px',background:'#f0f0f0',borderRadius:10,color:'#666'}}>{statusMap[o.status]||o.status}</span>
-                  <span style={{fontWeight:700,fontSize:16,color:'var(--org)'}}>${o.total}</span>
-                </div>
+          <div className="cart-section">
+            <div style={{fontWeight:700,fontSize:14,marginBottom:12}}>個人資料</div>
+            {[{l:'姓名',v:editName,set:setEditName,ph:'請輸入姓名'},{l:'電子信箱',v:editEmail,set:setEditEmail,ph:'example@email.com'},{l:'生日',v:editBirth,set:setEditBirth,ph:'1990-01-01'}].map(f=>(
+              <div key={f.l} style={{marginBottom:12}}>
+                <div style={{fontSize:12,color:'var(--muted)',marginBottom:5}}>{f.l}</div>
+                <input value={f.v} onChange={e=>f.set(e.target.value)} placeholder={f.ph}
+                  style={{...inp2,marginBottom:0}}
+                  onFocus={e=>e.target.style.borderColor='var(--org)'} onBlur={e=>e.target.style.borderColor='var(--border)'}/>
               </div>
-            );
-          })
-      }
-    </div>
-  );
-
-  // ── 最愛店家 ──
-  if(subPage==='favorites') return(
-    <div className="my-page" style={{paddingTop:0}}>
-      <BackHeader title="最愛店家"/>
-      <div style={{background:'#fff',borderRadius:12,padding:16,display:'flex',alignItems:'center',gap:14}}>
-        <div style={{width:56,height:56,borderRadius:10,background:'var(--org)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24}}>☕</div>
-        <div style={{flex:1}}>
-          <div style={{fontWeight:700,fontSize:15}}>路易莎 逢甲大學店</div>
-          <div style={{fontSize:12,color:'#888',marginTop:2}}>⭐ 4.4 · 台中市西屯區</div>
-        </div>
-        <span style={{color:'var(--org)',fontSize:22}}>♥</span>
-      </div>
-    </div>
-  );
-
-  // ── 優惠券 ──
-  if(subPage==='coupons') return(
-    <div className="my-page" style={{paddingTop:0}}>
-      <BackHeader title="優惠券"/>
-      <div style={{background:'#fff',borderRadius:12,padding:20,marginBottom:10,border:'1.5px solid var(--org)'}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
-          <span style={{fontWeight:700,fontSize:15}}>咖啡第二杯 85 折</span>
-          <span style={{background:'var(--org)',color:'#fff',padding:'4px 12px',borderRadius:10,fontSize:12,cursor:'pointer'}}>使用</span>
-        </div>
-        <div style={{fontSize:12,color:'#888'}}>黑卡會員專屬 · 有效期至 2026/12/31</div>
-      </div>
-      <div style={{background:'#f5f5f5',borderRadius:12,padding:20,opacity:.6}}>
-        <div style={{fontWeight:700,fontSize:15,marginBottom:4}}>環保杯折 $5</div>
-        <div style={{fontSize:12,color:'#888'}}>已使用</div>
-      </div>
-    </div>
-  );
-
-  // ── 會員卡 ──
-  if(subPage==='membercard') return(
-    <div className="my-page" style={{paddingTop:0}}>
-      <BackHeader title="會員卡"/>
-      <div style={{background:lv.bg,borderRadius:16,padding:24,marginBottom:16,color:lv.c}}>
-        <div style={{fontSize:12,opacity:.8,marginBottom:6}}>LOUISA {lv.l.toUpperCase()} MEMBER</div>
-        <div style={{fontSize:22,fontWeight:700,marginBottom:4}}>{customer.name||'顧客'}</div>
-        <div style={{fontSize:13,opacity:.7,marginBottom:20}}>{phone}</div>
-        <div style={{display:'flex',justifyContent:'space-between'}}>
-          <div><div style={{fontSize:28,fontWeight:900}}>{(customer.total_spent||0).toLocaleString()}</div><div style={{fontSize:11,opacity:.7}}>累積消費 (元)</div></div>
-          <div style={{textAlign:'right'}}><div style={{fontSize:22,fontWeight:700}}>{customer.total_orders||0}</div><div style={{fontSize:11,opacity:.7}}>消費次數</div></div>
-        </div>
-      </div>
-      <div style={{background:'#fff',borderRadius:12,padding:16,fontSize:13,lineHeight:1.8}}>
-        <div style={{fontWeight:700,marginBottom:8}}>等級說明</div>
-        {[{l:'一般會員',d:'累積消費 $0 起'},{l:'銀卡',d:'累積消費 $500 起，享 1% OFF'},{l:'金卡',d:'累積消費 $2,000 起，享 2% OFF'},{l:'黑卡',d:'累積消費 $5,000 起，享 3% OFF'}].map(g=>(
-          <div key={g.l} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid #f5f5f5'}}>
-            <span style={{fontWeight:600}}>{g.l}</span><span style={{color:'#888',fontSize:12}}>{g.d}</span>
+            ))}
+            {saveMsg&&<div style={{fontSize:13,color:saveMsg.startsWith('✅')?'#2e7d32':'var(--red)',marginBottom:8}}>{saveMsg}</div>}
+            <button onClick={saveProfile} disabled={saving}
+              style={{width:'100%',padding:13,background:saving?'#ccc':'var(--org)',color:'#fff',border:'none',borderRadius:10,fontSize:14,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
+              {saving?'儲存中...':'儲存變更'}
+            </button>
           </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  // ── 我的載具 ──
-  if(subPage==='invoice') return(
-    <div className="my-page" style={{paddingTop:0}}>
-      <BackHeader title="我的載具"/>
-      <div style={{background:'#fff',borderRadius:12,padding:16,marginBottom:12}}>
-        <div style={{fontSize:13,color:'#888',marginBottom:8}}>手機條碼載具</div>
-        <div style={{padding:'10px 14px',background:'#f5f5f5',borderRadius:8,fontSize:15,fontFamily:'monospace'}}>/ABC-1234</div>
-      </div>
-      <button style={{width:'100%',padding:14,background:'var(--org)',color:'#fff',border:'none',borderRadius:12,fontSize:15,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
-        更新載具條碼
-      </button>
-    </div>
-  );
-
-  // ── 常用地址 ──
-  if(subPage==='address') return(
-    <div className="my-page" style={{paddingTop:0}}>
-      <BackHeader title="常用地址"/>
-      <div style={{background:'#fff',borderRadius:12,padding:16,marginBottom:10,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-        <div><div style={{fontWeight:600,marginBottom:4}}>🏠 家</div><div style={{fontSize:13,color:'#888'}}>台中市西屯區逢甲路168號</div></div>
-        <button style={{background:'none',border:'none',color:'var(--org)',fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>編輯</button>
-      </div>
-      <button style={{width:'100%',padding:14,background:'var(--org)',color:'#fff',border:'none',borderRadius:12,fontSize:15,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
-        ＋ 新增地址
-      </button>
-    </div>
-  );
-
-  // ── 付款方式 ──
-  if(subPage==='payment') return(
-    <div className="my-page" style={{paddingTop:0}}>
-      <BackHeader title="付款方式"/>
-      {['LINE Pay','信用卡 ****-1234'].map((m,i)=>(
-        <div key={i} style={{background:'#fff',borderRadius:12,padding:16,marginBottom:10,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-          <span style={{fontSize:15,fontWeight:500}}>{m}</span>
-          <span style={{color:'#aaa',fontSize:18}}>›</span>
         </div>
-      ))}
-      <button style={{width:'100%',padding:14,background:'var(--org)',color:'#fff',border:'none',borderRadius:12,fontSize:15,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
-        ＋ 新增付款方式
-      </button>
-    </div>
-  );
-
-  // ── 兌換專區 ──
-  if(subPage==='redeem') return(
-    <div className="my-page" style={{paddingTop:0}}>
-      <BackHeader title="兌換專區"/>
-      <div style={{background:'var(--org)',borderRadius:12,padding:20,color:'#fff',marginBottom:16,textAlign:'center'}}>
-        <div style={{fontSize:13,opacity:.85,marginBottom:4}}>累積點數</div>
-        <div style={{fontSize:48,fontWeight:900,lineHeight:1}}>{(customer.total_spent||0)}</div>
-        <div style={{fontSize:12,opacity:.75,marginTop:4}}>每消費 $1 = 1 點</div>
       </div>
-      {[{l:'免費中杯飲品',pts:200},{l:'升級大杯',pts:50},{l:'免費輕食',pts:300}].map(item=>(
-        <div key={item.l} style={{background:'#fff',borderRadius:12,padding:16,marginBottom:10,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-          <div><div style={{fontWeight:600,fontSize:15}}>{item.l}</div><div style={{fontSize:12,color:'#888',marginTop:2}}>{item.pts} 點兌換</div></div>
-          <button style={{padding:'8px 16px',background:(customer.total_spent||0)>=item.pts?'var(--org)':'#e0e0e0',color:(customer.total_spent||0)>=item.pts?'#fff':'#aaa',border:'none',borderRadius:8,fontSize:13,fontFamily:'inherit',fontWeight:600,cursor:'pointer'}}>
-            兌換
+    );
+
+    if(subPage==='account') return(
+      <div style={{paddingBottom:20}}>
+        {backBtn}
+        <div style={{padding:'0 16px'}}>
+          <div className="cart-section">
+            <div style={{fontWeight:700,fontSize:15,marginBottom:14}}>帳號管理</div>
+            {[{l:'手機號碼',v:customer.phone,note:'手機號碼不可更改'},{l:'會員等級',v:lv.l},{l:'累積消費',v:'NT$'+(customer.total_spent||0).toLocaleString()},{l:'消費次數',v:(customer.total_orders||0)+' 次'}].map(row=>(
+              <div key={row.l} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 0',borderBottom:'1px solid var(--border)'}}>
+                <div>
+                  <div style={{fontSize:14,fontWeight:500}}>{row.l}</div>
+                  {row.note&&<div style={{fontSize:11,color:'var(--muted)',marginTop:2}}>{row.note}</div>}
+                </div>
+                <span style={{fontSize:14,fontWeight:600,color:'var(--org)'}}>{row.v}</span>
+              </div>
+            ))}
+          </div>
+          <button onClick={logout} style={{width:'100%',padding:13,background:'#fff',border:'1.5px solid var(--red)',borderRadius:10,fontSize:14,fontFamily:'inherit',fontWeight:600,cursor:'pointer',color:'var(--red)',marginTop:8}}>
+            登出帳號
           </button>
         </div>
-      ))}
-    </div>
-  );
+      </div>
+    );
 
-  // ── 設定 ──
-  if(subPage==='settings') return(
-    <div className="my-page" style={{paddingTop:0}}>
-      <BackHeader title="設定"/>
-      <div style={{background:'#fff',borderRadius:12,overflow:'hidden'}}>
-        {[{l:'語言',v:'繁體中文'},{l:'推播通知',v:'開啟'},{l:'深色模式',v:'關閉'},{l:'清除快取',v:''}].map((item,idx,arr)=>(
-          <div key={item.l} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',borderBottom:idx<arr.length-1?'1px solid #f5f5f5':'none',cursor:'pointer'}}>
-            <span style={{fontSize:15}}>{item.l}</span>
-            <span style={{fontSize:14,color:'#888'}}>{item.v} {item.v&&'›'}</span>
+    if(subPage==='history') return(
+      <div style={{paddingBottom:20}}>
+        {backBtn}
+        <div style={{padding:'0 16px'}}>
+          <div style={{fontWeight:700,fontSize:15,marginBottom:12}}>曾點過的商品</div>
+          {orders.length===0
+            ?<div style={{textAlign:'center',padding:'40px 0',color:'var(--muted)',fontSize:14}}>尚無訂單記錄</div>
+            :orders.map(o=>(
+              <div key={o.id} className="cart-section" style={{marginBottom:10}}>
+                <div style={{display:'flex',justifyContent:'space-between',marginBottom:8}}>
+                  <span style={{fontWeight:700,fontSize:13,color:'var(--org)'}}>{o.order_no}</span>
+                  <span style={{fontSize:13,fontWeight:700}}>NT${o.total}</span>
+                </div>
+                <div style={{fontSize:11,color:'var(--muted)',marginBottom:8}}>{new Date(o.created_at).toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit'})} · {o.payment_method}</div>
+                {(o.items||[]).map((item,idx)=>(
+                  <div key={idx} style={{fontSize:13,padding:'4px 0',borderTop:idx>0?'1px solid #f5f5f5':'none',display:'flex',justifyContent:'space-between'}}>
+                    <span>{item.name} ×{item.qty||1}</span>
+                    <span style={{color:'var(--org)'}}>NT${(item.price||0)*(item.qty||1)}</span>
+                  </div>
+                ))}
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    );
+
+    if(subPage==='favorites') return(
+      <div style={{paddingBottom:20}}>
+        {backBtn}
+        <div style={{padding:'0 16px'}}>
+          <div className="cart-section">
+            <div style={{fontWeight:700,fontSize:15,marginBottom:4}}>最愛店家</div>
+            <div style={{fontSize:13,color:'var(--muted)',marginBottom:16}}>點餐頁使用 ❤️ 收藏的門市</div>
+            {STORES.map(s=>(
+              <div key={s.id} style={{display:'flex',alignItems:'center',gap:12,padding:'12px 0',borderBottom:'1px solid var(--border)'}}>
+                <span style={{fontSize:24}}>🏪</span>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:600,fontSize:14}}>{s.name}</div>
+                  <div style={{fontSize:11,color:'var(--muted)',marginTop:2}}>📍 {s.addr}</div>
+                </div>
+                <span style={{fontSize:20}}>❤️</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+
+    if(subPage==='coupons') return(
+      <div style={{paddingBottom:20}}>
+        {backBtn}
+        <div style={{padding:'0 16px'}}>
+          <div className="cart-section" style={{textAlign:'center',padding:'40px 16px'}}>
+            <div style={{fontSize:40,marginBottom:12}}>🎟️</div>
+            <div style={{fontWeight:600,fontSize:15,marginBottom:6}}>目前沒有優惠券</div>
+            <div style={{fontSize:13,color:'var(--muted)'}}>參加活動或消費即可獲得優惠券</div>
+          </div>
+        </div>
+      </div>
+    );
+
+    if(subPage==='membercard') return(
+      <div style={{paddingBottom:20}}>
+        {backBtn}
+        <div style={{padding:'0 16px'}}>
+          <div style={{background:lv.bg,borderRadius:16,padding:24,marginBottom:12,textAlign:'center'}}>
+            <div style={{fontSize:32,marginBottom:6}}>{lv.badge}</div>
+            <div style={{fontSize:22,fontWeight:900,color:lv.c,marginBottom:4}}>{lv.l}</div>
+            <div style={{fontSize:14,color:lv.c,opacity:.8}}>{customer.name||'會員'}</div>
+          </div>
+          <div className="cart-section">
+            {[{l:'累積消費',v:'NT$'+(customer.total_spent||0).toLocaleString()},{l:'消費次數',v:(customer.total_orders||0)+' 次'},{l:'升級門檻',v:customer.total_spent>=5000?'已是最高等級':customer.total_spent>=2000?'距黑卡 NT$'+(5000-customer.total_spent):customer.total_spent>=500?'距金卡 NT$'+(2000-customer.total_spent):'距銀卡 NT$'+(500-(customer.total_spent||0))}].map(row=>(
+              <div key={row.l} style={{display:'flex',justifyContent:'space-between',padding:'11px 0',borderBottom:'1px solid var(--border)'}}>
+                <span style={{fontSize:14,color:'var(--muted)'}}>{row.l}</span>
+                <span style={{fontSize:14,fontWeight:700,color:'var(--org)'}}>{row.v}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+
+    if(subPage==='address') return(
+      <div style={{paddingBottom:20}}>
+        {backBtn}
+        <div style={{padding:'0 16px'}}>
+          <div className="cart-section" style={{textAlign:'center',padding:'40px 16px'}}>
+            <div style={{fontSize:40,marginBottom:12}}>📍</div>
+            <div style={{fontWeight:600,fontSize:15,marginBottom:6}}>尚未設定常用地址</div>
+            <div style={{fontSize:13,color:'var(--muted)',marginBottom:16}}>設定常用地址方便外送訂餐</div>
+            <button style={{padding:'12px 28px',background:'var(--org)',color:'#fff',border:'none',borderRadius:10,fontSize:14,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
+              + 新增地址
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+
+    if(subPage==='carrier') return(
+      <div style={{paddingBottom:20}}>
+        {backBtn}
+        <div style={{padding:'0 16px'}}>
+          <div className="cart-section">
+            <div style={{fontWeight:700,fontSize:15,marginBottom:4}}>我的載具</div>
+            <div style={{fontSize:13,color:'var(--muted)',marginBottom:16}}>設定後每次結帳自動帶入載具條碼</div>
+            <div style={{fontSize:12,color:'var(--muted)',marginBottom:6}}>手機載具條碼（/+7碼英數）</div>
+            <input value={editCarrier} onChange={e=>setEditCarrier(e.target.value.toUpperCase())} placeholder="/TS9EZ5L"
+              style={{...inp2,fontFamily:'monospace',letterSpacing:2}}
+              onFocus={e=>e.target.style.borderColor='var(--org)'} onBlur={e=>e.target.style.borderColor='var(--border)'}/>
+            <div style={{fontSize:11,color:'var(--muted)',marginBottom:14}}>請至財政部電子發票整合服務平台申請手機載具</div>
+            {saveMsg&&<div style={{fontSize:13,color:saveMsg.startsWith('✅')?'#2e7d32':'var(--red)',marginBottom:8}}>{saveMsg}</div>}
+            <button onClick={saveCarrier} disabled={saving}
+              style={{width:'100%',padding:13,background:saving?'#ccc':'var(--org)',color:'#fff',border:'none',borderRadius:10,fontSize:14,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>
+              {saving?'儲存中...':'儲存載具'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+
+    if(subPage==='payment') return(
+      <div style={{paddingBottom:20}}>
+        {backBtn}
+        <div style={{padding:'0 16px'}}>
+          <div className="cart-section">
+            <div style={{fontWeight:700,fontSize:15,marginBottom:14}}>付款方式</div>
+            {[{icon:'💳',l:'信用卡 / 金融卡',note:'Visa / Mastercard / JCB'},{icon:'📱',l:'LINE Pay',note:'LINE Pay 行動支付'},{icon:'🏪',l:'現場付款',note:'到店現金或刷卡'}].map(p=>(
+              <div key={p.l} style={{display:'flex',alignItems:'center',gap:14,padding:'13px 0',borderBottom:'1px solid var(--border)',cursor:'pointer'}}>
+                <span style={{fontSize:24}}>{p.icon}</span>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:600,fontSize:14}}>{p.l}</div>
+                  <div style={{fontSize:11,color:'var(--muted)',marginTop:2}}>{p.note}</div>
+                </div>
+                <span style={{fontSize:16,color:'var(--muted)'}}>›</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 主選單 ──
+  const menuItems=[
+    {icon:'👤',l:'個人檔案',sub:'查看並編輯個人資料',page:'profile'},
+    {icon:'⚙️',l:'帳號管理',sub:'等級、消費記錄',page:'account'},
+    {icon:'🧾',l:'曾點過',sub:'查看歷史訂單',page:'history'},
+    {icon:'🏪',l:'最愛店家',sub:'收藏的門市',page:'favorites'},
+    {icon:'🎟️',l:'優惠券',sub:'我的優惠券',page:'coupons',badge:0},
+    {icon:'👑',l:'會員卡',sub:lv.l,page:'membercard'},
+    {icon:'📍',l:'常用地址',sub:'外送常用地址',page:'address'},
+    {icon:'🧾',l:'我的載具',sub:customer.carrier||'尚未設定',page:'carrier'},
+    {icon:'💳',l:'付款方式',sub:'信用卡、LINE Pay',page:'payment'},
+  ];
+
+  return(
+    <div style={{paddingBottom:24}}>
+      {/* 會員 header */}
+      <div style={{background:'#fff',padding:'16px',display:'flex',alignItems:'center',gap:14,borderBottom:'1px solid var(--border)'}}>
+        <div style={{width:56,height:56,borderRadius:'50%',background:lv.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,flexShrink:0}}>
+          {lv.badge}
+        </div>
+        <div style={{flex:1}}>
+          <div style={{fontWeight:700,fontSize:17}}>{customer.name||'會員'}</div>
+          <div style={{fontSize:12,color:'var(--muted)',marginTop:2}}>{customer.phone}</div>
+        </div>
+        <div style={{background:'var(--org)',color:'#fff',borderRadius:8,padding:'4px 10px',fontSize:12,fontWeight:700}}>{lv.l.replace('會員','')}</div>
+      </div>
+
+      {/* 選單列表 */}
+      <div style={{background:'#fff',marginTop:8}}>
+        {menuItems.map((item,i)=>(
+          <div key={item.page} onClick={()=>setSubPage(item.page)}
+            style={{display:'flex',alignItems:'center',gap:14,padding:'16px',borderBottom:'1px solid var(--border)',cursor:'pointer',transition:'background .1s'}}
+            onMouseEnter={e=>e.currentTarget.style.background='#fff8f3'}
+            onMouseLeave={e=>e.currentTarget.style.background='#fff'}>
+            <div style={{width:40,height:40,borderRadius:10,background:'#f5f5f5',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>{item.icon}</div>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:600,fontSize:15}}>{item.l}</div>
+              <div style={{fontSize:12,color:'var(--muted)',marginTop:2}}>{item.sub}</div>
+            </div>
+            <span style={{fontSize:18,color:'#ccc'}}>›</span>
           </div>
         ))}
       </div>
-    </div>
-  );
 
-  // ── 意見回饋 ──
-  if(subPage==='feedback') return(
-    <div className="my-page" style={{paddingTop:0}}>
-      <BackHeader title="意見回饋"/>
-      <div style={{background:'#fff',borderRadius:12,padding:20}}>
-        <div style={{fontSize:13,color:'#888',marginBottom:8}}>您的意見</div>
-        <textarea placeholder="請輸入您的意見或建議..." rows={5}
-          style={{width:'100%',border:'1.5px solid #e0e0e0',borderRadius:8,padding:12,fontSize:14,fontFamily:'inherit',outline:'none',resize:'none',marginBottom:12}}/>
-        <button style={{width:'100%',padding:14,background:'var(--org)',color:'#fff',border:'none',borderRadius:10,fontSize:15,fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}
-          onClick={()=>{setSubPage('main');}}>
-          送出意見
+      <div style={{padding:'16px'}}>
+        <button onClick={logout} style={{width:'100%',padding:13,background:'#fff',border:'1.5px solid #ddd',borderRadius:12,fontSize:14,fontFamily:'inherit',fontWeight:600,cursor:'pointer',color:'#888'}}>
+          登出
         </button>
       </div>
-    </div>
-  );
-
-  // ── 常見問題 ──
-  if(subPage==='faq') return(
-    <div className="my-page" style={{paddingTop:0}}>
-      <BackHeader title="常見問題"/>
-      {[{q:'如何累積點數？',a:'每消費 $1 即可累積 1 點，點數可用於兌換飲品或升級。'},
-        {q:'如何成為黑卡會員？',a:'累積消費滿 $5,000 即自動升級為黑卡會員，享有 3% 折扣優惠。'},
-        {q:'訂單可以取消嗎？',a:'訂單送出後無法取消，如有問題請聯繫門市人員。'},
-        {q:'外送範圍是哪裡？',a:'目前外送範圍為門市 3 公里以內。'}].map((item,i)=>(
-        <div key={i} style={{background:'#fff',borderRadius:12,padding:16,marginBottom:10}}>
-          <div style={{fontWeight:600,marginBottom:6,color:'var(--org)'}}>Q. {item.q}</div>
-          <div style={{fontSize:13,color:'#555',lineHeight:1.6}}>A. {item.a}</div>
-        </div>
-      ))}
-    </div>
-  );
-
-  // ── 主頁 ──
-  return(
-    <div className="my-page" style={{paddingTop:0,paddingBottom:20,background:'#f5f5f5',minHeight:'100vh'}}>
-      {/* 頂部 header */}
-      <div style={{background:'#fff',padding:'12px 20px 14px',marginBottom:8}}>
-        <div style={{fontSize:14,fontWeight:700,textAlign:'center',marginBottom:12,letterSpacing:1}}>LOUISA COFFEE</div>
-        <div style={{display:'flex',alignItems:'center',gap:14}}>
-          <div style={{width:52,height:52,borderRadius:'50%',background:'var(--org)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,color:'#fff',fontWeight:700}}>
-            {(customer.name||'顧')[0]}
-          </div>
-          <div style={{flex:1}}>
-            <div style={{fontWeight:700,fontSize:17}}>{customer.name||'顧客'}</div>
-            <div style={{fontSize:12,color:'#888',marginTop:2}}>{phone}</div>
-          </div>
-          <div style={{position:'relative',cursor:'pointer'}}>
-            <span style={{fontSize:24}}>🔔</span>
-            {(customer.total_orders||0)>0&&<span style={{position:'absolute',top:-4,right:-4,background:'var(--red)',color:'#fff',borderRadius:'50%',width:18,height:18,fontSize:11,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>{customer.total_orders||0}</span>}
-          </div>
-        </div>
-      </div>
-
-      {/* 第一組 */}
-      <div style={{background:'#fff',borderRadius:0,marginBottom:8,overflow:'hidden'}}>
-        {[
-          {l:'個人檔案',i:'👤',sub:'profile'},
-          {l:'帳號管理',i:'⚙️',sub:'account'},
-          {l:'曾點過',i:'🧾',sub:'history'},
-          {l:'最愛店家',i:'♥',sub:'favorites'},
-          {l:'優惠券',i:'🎫',sub:'coupons'},
-          {l:'會員卡',i:'💳',sub:'membercard'},
-          {l:'常用地址',i:'📍',sub:'address'},
-          {l:'我的載具',i:'🧾',sub:'invoice'},
-          {l:'付款方式',i:'💰',sub:'payment'},
-        ].map((item,idx,arr)=>(
-          <div key={item.l} onClick={()=>setSubPage(item.sub)}
-            style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'15px 20px',borderBottom:idx<arr.length-1?'1px solid #f5f5f5':'none',cursor:'pointer',background:'#fff'}}>
-            <div style={{display:'flex',alignItems:'center',gap:14}}>
-              <span style={{fontSize:18,width:24,textAlign:'center',color:'#555'}}>{item.i}</span>
-              <span style={{fontSize:15,color:'#1a1a1a'}}>{item.l}</span>
-            </div>
-            <span style={{color:'#ccc',fontSize:18}}>›</span>
-          </div>
-        ))}
-      </div>
-
-      {/* 第二組 */}
-      <div style={{background:'#fff',marginBottom:8,overflow:'hidden'}}>
-        {[
-          {l:'兌換專區',i:'🎁',sub:'redeem'},
-          {l:'設定',i:'⚙️',sub:'settings'},
-          {l:'意見回饋',i:'💬',sub:'feedback'},
-          {l:'常見問題',i:'❓',sub:'faq'},
-        ].map((item,idx,arr)=>(
-          <div key={item.l} onClick={()=>setSubPage(item.sub)}
-            style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'15px 20px',borderBottom:idx<arr.length-1?'1px solid #f5f5f5':'none',cursor:'pointer',background:'#fff'}}>
-            <div style={{display:'flex',alignItems:'center',gap:14}}>
-              <span style={{fontSize:18,width:24,textAlign:'center',color:'#555'}}>{item.i}</span>
-              <span style={{fontSize:15,color:'#1a1a1a'}}>{item.l}</span>
-            </div>
-            <span style={{color:'#ccc',fontSize:18}}>›</span>
-          </div>
-        ))}
-      </div>
-
-      <button onClick={()=>{setCustomer(null);setPhone('');setInputPhone('');setOrders([]);setSubPage('main');setGlobalMember&&setGlobalMember(null);}}
-        style={{width:'calc(100% - 32px)',margin:'0 16px',padding:14,background:'#fff',border:'1px solid #e0e0e0',borderRadius:12,fontSize:14,fontFamily:'inherit',fontWeight:600,cursor:'pointer',color:'#888'}}>
-        登出
-      </button>
     </div>
   );
 }
+
 ReactDOM.render(<App/>,document.getElementById('root'));
 </script>
 </body>
