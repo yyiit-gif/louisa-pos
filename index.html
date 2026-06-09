@@ -277,15 +277,18 @@ function OrderPage({cart,setCart,showToast}){
   function updQty(id,d){ setCart(prev=>prev.map(i=>i.id===id?{...i,qty:Math.max(0,i.qty+d)}:i).filter(i=>i.qty>0)); }
   const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
 
-  async function confirmOrder(){
+  async function confirmOrder(payStatus='paid'){
     const no='#'+(1000+Math.floor(Math.random()*9000));
     const pickup=new Date(Date.now()+15*60000).toISOString();
-    // 所有付款方式確認後都算已付款，直接進入製作流程
-    const status = 'paid';
-    const{error}=await db.from('orders').insert([{
+    const insertData={
       order_no:no, member_phone:phone||null, items:cart, total,
-      payment_method:pay, status, pickup_time:pickup,
-    }]);
+      payment_method:payStatus==='unpaid'?'稍後付款':pay,
+      status:payStatus, pickup_time:pickup,
+    };
+    if(invType) insertData.inv_type=invType;
+    if(invType==='mobile'&&mobileCarrier) insertData.mobile_carrier=mobileCarrier;
+    if(taxId) insertData.tax_id=taxId;
+    const{error}=await db.from('orders').insert([insertData]);
     if(error){ showToast('❌ 下單失敗：'+error.message); return; }
     setOrderNo(no); setCart([]); setPay('現金'); setStep('success');
   }
@@ -315,6 +318,9 @@ function OrderPage({cart,setCart,showToast}){
               style={pay===m?{borderColor:'var(--orange)',background:'var(--orange)',color:'#fff'}:{}}
               onClick={()=>setPay(m)}>{m}</button>
           ))}
+          <button className={`pay-btn${pay==='稍後付款'?' sel':''}`}
+            style={pay==='稍後付款'?{borderColor:'#e53935',background:'#e53935',color:'#fff'}:{borderColor:'#e53935',color:'#e53935'}}
+            onClick={()=>setPay('稍後付款')}>稍後付款</button>
         </div>
         <hr className="divider"/>
         <h3 style={{marginBottom:12}}>🧾 發票設定</h3>
@@ -348,7 +354,15 @@ function OrderPage({cart,setCart,showToast}){
         <div style={{fontSize:12,color:'var(--muted)'}}>（約 {new Date(Date.now()+15*60000).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})} 可取餐）</div>
         <hr className="divider"/>
         <div style={{fontSize:18,fontWeight:700,marginBottom:12}}>總金額：${total}</div>
-        <button className="btn btn-dark" style={{width:'100%'}} onClick={confirmOrder}>確認收款</button>
+        {pay==='稍後付款'
+          ?<>
+            <button className="btn" style={{width:'100%',background:'#e53935',color:'#fff',borderRadius:8,padding:'13px',fontWeight:700,fontSize:15,marginBottom:8,border:'none',cursor:'pointer'}} onClick={()=>confirmOrder('unpaid')}>
+              確認稍後付款（未付款入單）
+            </button>
+            <div style={{fontSize:12,color:'#e53935',textAlign:'center',marginBottom:8}}>⚠️ 訂單將顯示於「未付款」，需現場補款</div>
+          </>
+          :<button className="btn btn-dark" style={{width:'100%'}} onClick={()=>confirmOrder('paid')}>確認收款</button>
+        }
         <button className="btn btn-gray" style={{width:'100%',marginTop:8}} onClick={()=>setStep('menu')}>← 返回</button>
       </div>
     </div>
@@ -509,34 +523,104 @@ function OrdersPage({showToast}){
     showToast('🗑️ 訂單已刪除'); load(true);
   }
 
+  const[expandedOrder,setExpandedOrder]=useState(null);
+
   function Row({o}){
     const items=Array.isArray(o.items)?o.items:[];
     const summary=items.map(i=>`${i.name} x${i.qty||1}`).join('、');
     const pickup=o.pickup_time?new Date(o.pickup_time).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}):'-';
-    const isCustomer=o.order_no&&o.order_no.startsWith('C');
-    const isGroup=o.order_no&&o.order_no.startsWith('GP-');
-    const invBadge=o.inv_type==='mobile'?'📱 載具':o.inv_type==='donate'?'❤️ 捐贈':o.inv_type==='paper'?'📄 紙本':'';
+    // 揪團判斷：is_group欄位 OR 訂單編號GP-開頭 OR items裡有member欄位（揪團品項帶member）
+    const isGroup=!!(o.is_group||
+      (o.order_no&&o.order_no.startsWith('GP-'))||
+      (items.length>0&&items.some(i=>i.member)));
+    const isCustomer=!isGroup&&o.order_no&&(o.order_no.startsWith('C')||o.order_no.startsWith('M'));
+    const invType=o.inv_type||o.invoice_type||'';
+    const invBadge=invType==='mobile'?'📱 手機載具':invType==='donate'?'❤️ 愛心捐贈':invType==='paper'?'📄 紙本發票':'';
+    const carrier=o.mobile_carrier||o.carrier||'';
+    const isExpanded=expandedOrder===o.id;
+
     return(
-      <tr style={{background:isGroup?'#f3e5f5':isCustomer?'#fffde7':''}}>
-        <td>
-          <strong>{o.order_no}</strong>
-          {isGroup&&<span style={{marginLeft:4,fontSize:10,background:'#9c27b0',color:'#fff',padding:'1px 5px',borderRadius:6}}>揪團</span>}
-          {isCustomer&&!isGroup&&<span style={{marginLeft:4,fontSize:10,background:'var(--orange)',color:'#fff',padding:'1px 5px',borderRadius:6}}>顧客</span>}
-          {invBadge&&<span style={{display:'block',fontSize:10,color:'var(--muted)',marginTop:2}}>{invBadge}{o.tax_id?' · 統編:'+o.tax_id:''}</span>}
-        </td>
-        <td>{pickup}</td>
-        <td style={{maxWidth:160,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{summary}</td>
-        <td><strong>${o.total}</strong></td>
-        <td style={{fontSize:11,color:'var(--muted)'}}>{o.payment_method}</td>
-        <td>
-          <div style={{display:'flex',gap:4,flexWrap:'wrap',alignItems:'center'}}>
-            {o.status==='unpaid'&&<button className="btn btn-orange btn-sm" onClick={()=>showToast('🖨️ 列印中：'+o.order_no)}>列印貼紙</button>}
-            {o.status==='paid'&&<span><span className="badge b-paid">製作中</span><button className="btn btn-gray btn-sm" style={{marginLeft:6}} onClick={()=>updStatus(o.id,'done')}>完成</button></span>}
-            {o.status==='done'&&<span className="badge b-done">已完成</span>}
-            <button className="btn btn-sm" style={{background:'#fce4ec',color:'#c62828',border:'none',borderRadius:6,cursor:'pointer',padding:'4px 8px',fontSize:11}} onClick={()=>deleteOrder(o.id,o.order_no)}>🗑️ 刪除</button>
-          </div>
-        </td>
-      </tr>
+      <React.Fragment>
+        <tr style={{background:isGroup?'#f3e5f5':isCustomer?'#fffde7':'',cursor:'pointer'}} onClick={()=>setExpandedOrder(isExpanded?null:o.id)}>
+          <td>
+            <div style={{display:'flex',alignItems:'center',gap:6}}>
+              <strong style={{color:'var(--orange)'}}>{o.order_no}</strong>
+              {isGroup&&<span style={{fontSize:11,background:'#9c27b0',color:'#fff',padding:'2px 8px',borderRadius:6,fontWeight:700,letterSpacing:.3}}>揪團</span>}
+              {isCustomer&&<span style={{fontSize:11,background:'var(--orange)',color:'#fff',padding:'2px 8px',borderRadius:6,fontWeight:700}}>顧客</span>}
+            </div>
+            {invBadge&&<div style={{fontSize:10,color:'var(--muted)',marginTop:2,display:'flex',alignItems:'center',gap:4}}>
+              {invBadge}
+              {carrier&&<span style={{fontFamily:'monospace',background:'#f0f0f0',padding:'0 4px',borderRadius:3}}>{carrier}</span>}
+              {o.tax_id&&<span>· 統編:{o.tax_id}</span>}
+            </div>}
+            {o.recipient_name&&<div style={{fontSize:10,color:'var(--muted)',marginTop:1}}>取貨：{o.recipient_name}</div>}
+          </td>
+          <td>{pickup}</td>
+          <td style={{maxWidth:160,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:12}}>{summary}</td>
+          <td><strong style={{color:'var(--orange)'}}>${o.total}</strong></td>
+          <td style={{fontSize:11,color:'var(--muted)'}}>{o.payment_method}</td>
+          <td>
+            <div style={{display:'flex',gap:4,flexWrap:'wrap',alignItems:'center'}}>
+              {o.status==='unpaid'&&<>
+                <button className="btn btn-orange btn-sm" onClick={e=>{e.stopPropagation();showToast('🖨️ 列印中：'+o.order_no);}}>🖨️ 列印貼紙</button>
+                <button className="btn btn-sm" style={{background:'#e8f5e9',color:'#2e7d32',border:'1px solid #a5d6a7',borderRadius:6,cursor:'pointer',padding:'4px 8px',fontSize:11,fontWeight:600}} onClick={e=>{e.stopPropagation();updStatus(o.id,'paid');showToast('✅ 已確認收款');}}>確認收款</button>
+              </>}
+              {o.status==='paid'&&<span style={{display:'flex',alignItems:'center',gap:4}}>
+                <span className="badge b-paid">製作中</span>
+                <button className="btn btn-orange btn-sm" onClick={e=>{e.stopPropagation();showToast('🖨️ 列印中：'+o.order_no);}}>🖨️</button>
+                <button className="btn btn-gray btn-sm" onClick={e=>{e.stopPropagation();updStatus(o.id,'done');}}>完成</button>
+              </span>}
+              {o.status==='done'&&<>
+                <span className="badge b-done">已完成</span>
+                <button className="btn btn-orange btn-sm" onClick={e=>{e.stopPropagation();showToast('🖨️ 補印中：'+o.order_no);}}>🖨️</button>
+              </>}
+              <button className="btn btn-sm" style={{background:'#fce4ec',color:'#c62828',border:'none',borderRadius:6,cursor:'pointer',padding:'4px 8px',fontSize:11}} onClick={e=>{e.stopPropagation();deleteOrder(o.id,o.order_no);}}>🗑️</button>
+            </div>
+          </td>
+        </tr>
+        {isExpanded&&(
+          <tr style={{background:'#fafafa'}}>
+            <td colSpan={6} style={{padding:'12px 16px'}}>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+                <div>
+                  <div style={{fontWeight:600,fontSize:12,color:'var(--muted)',marginBottom:8,textTransform:'uppercase',letterSpacing:.5}}>訂單品項</div>
+                  {items.map((item,idx)=>(
+                    <div key={idx} style={{display:'flex',justifyContent:'space-between',padding:'5px 0',borderBottom:'1px solid #eee',fontSize:12}}>
+                      <span>
+                        {item.member&&<span style={{background:'#e8f5e9',color:'#2e7d32',padding:'1px 5px',borderRadius:4,fontSize:10,marginRight:4}}>{item.member}</span>}
+                        {item.name} x{item.qty||1}
+                        {item.opts&&!item.isFood&&<span style={{color:'var(--muted)',marginLeft:4}}>({[item.opts.spec,item.opts.sugar].filter(Boolean).join('/')})</span>}
+                      </span>
+                      <strong>${(item.price||0)*(item.qty||1)}</strong>
+                    </div>
+                  ))}
+                  <div style={{display:'flex',justifyContent:'space-between',padding:'8px 0 0',fontWeight:700,fontSize:13}}>
+                    <span>合計</span><span style={{color:'var(--orange)'}}>NT${o.total}</span>
+                  </div>
+                </div>
+                <div>
+                  <div style={{fontWeight:600,fontSize:12,color:'var(--muted)',marginBottom:8,textTransform:'uppercase',letterSpacing:.5}}>訂單資訊</div>
+                  {[
+                    {l:'訂單編號',v:o.order_no},
+                    {l:'建立時間',v:o.created_at?new Date(o.created_at).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}):'-'},
+                    {l:'取貨人',v:o.recipient_name||'-'},
+                    {l:'聯絡電話',v:o.member_phone||'-'},
+                    {l:'付款方式',v:o.payment_method||'-'},
+                    {l:'發票方式',v:invBadge||(invType?invType:'-')},
+                    {l:'載具號碼',v:carrier||'-'},
+                    {l:'統一編號',v:o.tax_id||'-'},
+                  ].map(row=>(
+                    <div key={row.l} style={{display:'flex',justifyContent:'space-between',padding:'4px 0',fontSize:12,borderBottom:'1px solid #eee'}}>
+                      <span style={{color:'var(--muted)'}}>{row.l}</span>
+                      <span style={{fontWeight:500,textAlign:'right',maxWidth:160}}>{row.v}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </td>
+          </tr>
+        )}
+      </React.Fragment>
     );
   }
 
@@ -559,7 +643,7 @@ function OrdersPage({showToast}){
           <div className="os-sec-title">{s.title}</div>
           <div className="card" style={{padding:0}}>
             <table>
-              <thead><tr><th>序號</th><th>取餐時間</th><th>內容</th><th>金額</th><th>付款</th><th>狀態</th></tr></thead>
+              <thead><tr><th>序號 / 發票</th><th>取餐時間</th><th>內容</th><th>金額</th><th>付款</th><th>狀態</th></tr></thead>
               <tbody>{s.list.length===0?<tr><td colSpan={6} style={{textAlign:'center',color:'var(--muted)',padding:16}}>無資料</td></tr>:s.list.map(o=><Row key={o.id} o={o}/>)}</tbody>
             </table>
           </div>
@@ -1306,17 +1390,32 @@ function CRMPage({showToast}){
                   : custOrders.length===0
                     ? <div style={{textAlign:'center',color:'var(--muted)',padding:20,fontSize:13}}>尚無消費紀錄</div>
                     : <table>
-                        <thead><tr><th>訂單</th><th>時間</th><th>品項</th><th>金額</th><th>付款</th></tr></thead>
+                        <thead><tr><th>訂單</th><th>時間</th><th>品項</th><th>金額</th><th>付款</th><th>發票/載具</th></tr></thead>
                         <tbody>
                           {custOrders.map(o=>{
                             const items=(o.items||[]).map(i=>i.name+'×'+(i.qty||1)).join('、');
+                            const invType=o.inv_type||o.invoice_type||'';
+                            const invBadge=invType==='mobile'?'📱':invType==='donate'?'❤️':invType==='paper'?'📄':'—';
+                            const carrier=o.mobile_carrier||o.carrier||'';
+                            const isGroup=o.is_group||(o.order_no&&o.order_no.startsWith('GP-'))||((o.items||[]).some(i=>i.member));
                             return(
                               <tr key={o.id}>
-                                <td><strong style={{color:'var(--orange)'}}>{o.order_no}</strong></td>
+                                <td>
+                                  <strong style={{color:'var(--orange)'}}>{o.order_no}</strong>
+                                  {isGroup&&<span style={{display:'block',fontSize:10,background:'#9c27b0',color:'#fff',padding:'1px 5px',borderRadius:6,marginTop:2,width:'fit-content'}}>揪團</span>}
+                                </td>
                                 <td style={{fontSize:11,color:'var(--muted)',whiteSpace:'nowrap'}}>{new Date(o.created_at).toLocaleDateString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</td>
                                 <td style={{fontSize:12,maxWidth:140,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{items}</td>
                                 <td style={{color:'var(--orange)',fontWeight:600,whiteSpace:'nowrap'}}>NT${o.total}</td>
                                 <td><span className="tag" style={{fontSize:10}}>{o.payment_method}</span></td>
+                                <td>
+                                  <div style={{fontSize:11}}>
+                                    <span>{invBadge}</span>
+                                    {carrier&&<div style={{fontFamily:'monospace',background:'#f5f5f5',padding:'1px 5px',borderRadius:3,marginTop:2,fontSize:10}}>{carrier}</div>}
+                                    {o.tax_id&&<div style={{fontSize:10,color:'var(--muted)',marginTop:1}}>統編:{o.tax_id}</div>}
+                                    {!invType&&<span style={{color:'var(--muted)'}}>—</span>}
+                                  </div>
+                                </td>
                               </tr>
                             );
                           })}
